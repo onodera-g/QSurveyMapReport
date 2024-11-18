@@ -1,0 +1,19 @@
+[general]
+name=QSurveyMapReport
+qgisMinimumVersion=3.0
+description=QSurveyMapReport
+version=0.1
+author=0nodera gaku
+email=ga19981023ku@gmail.com
+tracker=https://github.com/onodera-g/QSurveyMapReport
+repository=https://github.com/onodera-g/QSurveyMapReport
+tags=vector
+homepage= https://0n0dera.com/
+category=Vector
+icon=icon.png
+
+# experimental flag
+experimental=False
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
