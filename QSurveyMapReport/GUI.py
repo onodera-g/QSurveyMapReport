@@ -70,12 +70,13 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.pushButton.setText(_translate("MainWindow", "select path"))
+        MainWindow.setWindowTitle(_translate(
+            "QSurveyMapReport", "QSurveyMapReport"))
+        self.pushButton.setText(_translate("MainWindow", "......"))
         self.pushButton_2.setText(_translate("MainWindow", "input map"))
         self.pushButton_3.setText(_translate("MainWindow", "update list"))
         self.label.setText(_translate("MainWindow", "TextLabel"))
-        self.pushButton_4.setText(_translate("MainWindow", "input map"))
-        self.pushButton_5.setText(_translate("MainWindow", "input map"))
-        self.pushButton_6.setText(_translate("MainWindow", "input map"))
+        self.pushButton_4.setText(_translate("MainWindow", "make csv"))
+        self.pushButton_5.setText(_translate("MainWindow", "▶"))
+        self.pushButton_6.setText(_translate("MainWindow", "◀"))
         self.pushButton_7.setText(_translate("MainWindow", "make pdf"))

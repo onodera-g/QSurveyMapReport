@@ -1,4 +1,4 @@
-# プラグインの有効化、無効化、GUIの表示を実装している。
+# Menu_Button.py
 
 # QGIS
 from PyQt5.QtCore import *
@@ -10,12 +10,11 @@ from .resources import *
 
 # Python
 import os
-import os.path
 import sys
 import codecs
 
 # Menu_Dialogの読み込み
-from .Menu_Dialog import Menu_Function
+from .Menu_Dialog import Menu_Dialog  # 修正: Menu_Dialog クラスをインポート
 
 # 文字コード変換用
 QString = str
@@ -98,10 +97,9 @@ class QSurveyMapReport:
         del self.toolbar
 
     def Menu02(self):
-        # Menu_Dialog読み込み
-        self.Menu_Function = Menu_Function(self.iface)
         # Menu_Dialog表示
-        self.Menu_Function.dlg.show()
+        self.dialog = Menu_Dialog(self.iface)
+        self.dialog.show()
 
     def run(self):
         pass
