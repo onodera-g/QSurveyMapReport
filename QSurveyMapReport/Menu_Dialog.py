@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtWidgets import (
     QPushButton, QApplication, QMainWindow,
-    QFileDialog, QLabel, QListWidget, QLineEdit, QMessageBox
+    QFileDialog, QLabel, QListWidget, QPlainTextEdit, QMessageBox
 )
 from qgis.core import (
     QgsVectorLayer, QgsProject, QgsPalLayerSettings,
@@ -19,6 +19,7 @@ from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 from .GUI import Ui_MainWindow  # 既存のGUIファイルをインポート
 from .pdf_creator import PDFCreator
+import unicodedata
 
 
 QString = str
@@ -200,6 +201,7 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
         self.lineEdit_2.setAlignment(Qt.AlignCenter)  # 中央揃え
         self.lineEdit_2.setReadOnly(True)  # 編集不可
         self.lineEdit_4.setAlignment(Qt.AlignCenter)  # 中央揃え
+        self.lineEdit_4.setReadOnly(True)  # 編集不可
 
         # QLabel の中央揃えを設定
         self.label.setAlignment(Qt.AlignCenter)
@@ -212,7 +214,7 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pushButton_4.clicked.connect(self.on_save_csv)
         self.pushButton_5.clicked.connect(self.on_show_next_image)
         self.pushButton_6.clicked.connect(self.on_show_previous_image)
-        self.pushButton_7.clicked.connect(self.on_create_pdf)  # PDF作成機能を接続
+        self.pushButton_7.clicked.connect(self.on_create_pdf)
 
         # listWidget の選択変更時に display_selected_image を呼び出す
         self.listWidget.itemSelectionChanged.connect(
@@ -265,7 +267,7 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
             self.menu_function.update_image_list(directory)
             self.update_list_widget()
             # テキストのリセット
-            self.lineEdit_3.clear()
+            self.textEdit.clear()
             self.lineEdit_2.clear()
             self.lineEdit_4.clear()
             self.display_empty_image()  # 空の画像を表示
@@ -336,7 +338,6 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
             QMessageBox.critical(self, "エラー", message)
 
     # リストウィジェットを更新
-
     def update_list_widget(self):
         self.listWidget.clear()
         for image_info in self.menu_function.image_data:
@@ -348,7 +349,7 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # 現在のテキストを保存
     def save_current_text(self):
-        text = self.lineEdit_3.text()
+        text = self.textEdit.toPlainText()  # QPlainTextEdit用に変更
         self.menu_function.save_current_text(text)
 
     # 選択した画像と付随する情報を表示
@@ -363,7 +364,10 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
             # 画像番号、ファイル名、テキストの表示
             if 0 <= self.menu_function.current_index < len(self.menu_function.image_data):
                 image_info = self.menu_function.image_data[self.menu_function.current_index]
-                self.lineEdit_3.setText(image_info["text"])
+                formatted_text = self.format_text_with_line_breaks(
+                    image_info["text"])
+                self.textEdit.setPlainText(
+                    formatted_text)  # QPlainTextEdit用に変更
                 self.lineEdit_2.setText(str(image_info["number"]))
                 self.lineEdit_4.setText(image_info["file_name"])
 
@@ -384,3 +388,21 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
         blank_image = QImage(self.label.size(), QImage.Format_RGB32)
         blank_image.fill(Qt.white)
         self.label.setPixmap(QPixmap.fromImage(blank_image))
+
+    def format_text_with_line_breaks(self, text, max_length=36):
+        formatted_text = ""
+        current_length = 0
+        buffer = ""
+
+        for char in text:
+            char_width = 0.5 if unicodedata.east_asian_width(
+                char) in "NaH" else 1
+            if current_length + char_width > max_length:
+                formatted_text += buffer
+                buffer = ""
+                current_length = 0
+            buffer += char
+            current_length += char_width
+
+        formatted_text += buffer
+        return formatted_text
