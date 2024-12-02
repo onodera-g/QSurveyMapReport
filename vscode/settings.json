@@ -1,0 +1,22 @@
+{
+    "python.analysis.extraPaths": [
+        "C:\\Program Files\\QGIS 3.32.3\\apps\\Python39",
+        "C:\\Program Files\\QGIS 3.32.3\\apps\\qgis\\python"  // 必要に応じて他のパスも追加
+    ],
+    "files.associations": {
+        "metadata.txt": "ini",
+        "*.qrc": "xml",
+        "*.ui": "xml"
+    },
+    "terminal.integrated.defaultProfile.windows": "OSGeo4W Shell",
+    "terminal.integrated.profiles.windows": {
+        "OSGeo4W Shell": {
+            "path": "${env:ComSpec}",
+            "args": [
+                "/k",
+               "C:\\Program Files\\QGIS 3.32.3\\OSGeo4W.bat"
+            ],
+            "icon": "terminal-cmd"
+        }
+    }
+}

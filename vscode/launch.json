@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach QGIS",
+            "type": "python",
+            "request": "attach",
+            "processId": "${command:pickProcess}",
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/test_plugin",
+                    "remoteRoot": "${env:APPDATA}/QGIS/QGIS3/profiles/default/python/plugins/test_plugin"
+                }
+            ],
+            "justMyCode": true
+        }
+    ]
+}
