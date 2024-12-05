@@ -45,7 +45,7 @@ class Menu_Function:
                     exif_dict[decoded_tag] = value
                 return exif_dict
         except Exception as e:
-            print(f"EXIFデータの取得中にエラーが発生しました ({image_path}): {e}")
+            print("EXIFデータの取得中にエラーが発生しました ({}): {}".format(image_path, e))
             return None
 
     # GPS情報を取得する関数
@@ -133,12 +133,13 @@ class Menu_Function:
                 reader = csv.reader(file)
                 headers = next(reader)
                 if headers[:5] != required_headers:
-                    return False, f"CSVファイルのヘッダーが正しくありません。\n必要なヘッダー: {', '.join(required_headers)}"
+                    return False, "CSVファイルのヘッダーが正しくありません。\n必要なヘッダー: {}".format(', '.join(required_headers))
         except Exception as e:
-            return False, f"CSVファイルの読み込み中にエラーが発生しました:\n{e}"
+            return False, "CSVファイルの読み込み中にエラーが発生しました:\n{}".format(e)
 
         try:
-            uri = f"file:///{csv_file}?delimiter=,&xField=経度&yField=緯度&crs=EPSG:4326"
+            uri = "file:///{csv_file}?delimiter=,&xField=経度&yField=緯度&crs=EPSG:4326".format(
+                csv_file=csv_file)
             layer_name = os.path.splitext(os.path.basename(csv_file))[0]
             csv_layer = QgsVectorLayer(uri, layer_name, "delimitedtext")
             if not csv_layer.isValid():
@@ -168,9 +169,9 @@ class Menu_Function:
             csv_layer.setLabeling(QgsVectorLayerSimpleLabeling(labeling))
             csv_layer.setLabelsEnabled(True)
 
-            return True, f"CSVファイルがレイヤとしてQGISに追加されました: {layer_name}"
+            return True, "CSVファイルがレイヤとしてQGISに追加されました: {}".format(layer_name)
         except Exception as e:
-            return False, f"CSVファイルをQGISに追加する際にエラーが発生しました:\n{e}"
+            return False, "CSVファイルをQGISに追加する際にエラーが発生しました:\n{}".format(e)
 
 
 class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -192,7 +193,8 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
         for btn in [
             self.pushButton, self.pushButton_2, self.pushButton_3,
             self.pushButton_4, self.pushButton_5, self.pushButton_6,
-            getattr(self, 'pushButton_7', None)  # pushButton_7が存在する場合
+            self.pushButton_7,  # pushButton_7が存在する場合
+            getattr(self, 'pushButton_8', None)  # pushButton_8を追加
         ]:
             if btn:
                 btn.setStyleSheet(button_styles)
@@ -215,6 +217,8 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pushButton_5.clicked.connect(self.on_show_next_image)
         self.pushButton_6.clicked.connect(self.on_show_previous_image)
         self.pushButton_7.clicked.connect(self.on_create_pdf)
+        # 新しく追加したボタンのシグナル接続
+        self.pushButton_8.clicked.connect(self.on_rotate_image)
 
         # listWidget の選択変更時に display_selected_image を呼び出す
         self.listWidget.itemSelectionChanged.connect(
@@ -257,9 +261,10 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
                 writer.writerow(["番号", "ファイル名", "緯度", "経度", "撮影方位"])
                 writer.writerows(output_data)
             QMessageBox.information(
-                self, "成功", f"CSVファイルが保存されました:\n{csv_file}")
+                self, "成功", "CSVファイルが保存されました:\n{}".format(csv_file))
         except Exception as e:
-            QMessageBox.critical(self, "エラー", f"CSVファイルの保存中にエラーが発生しました:\n{e}")
+            QMessageBox.critical(
+                self, "エラー", "CSVファイルの保存中にエラーが発生しました:\n{}".format(e))
 
     def on_reset_and_update_images(self):
         directory = self.lineEdit.text()
@@ -317,7 +322,7 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
             image_path = os.path.join(directory, file_name)
             if os.path.exists(image_path):
                 image_paths.append(image_path)
-                data.append(f"{file_name}, {text}")
+                data.append("{}, {}".format(file_name, text))
 
         if not image_paths:
             QMessageBox.warning(self, "警告", "有効な画像がありません。")
@@ -398,7 +403,7 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
             char_width = 0.5 if unicodedata.east_asian_width(
                 char) in "NaH" else 1
             if current_length + char_width > max_length:
-                formatted_text += buffer
+                formatted_text += buffer + "\n"
                 buffer = ""
                 current_length = 0
             buffer += char
@@ -406,3 +411,29 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
 
         formatted_text += buffer
         return formatted_text
+
+    # 180度回転ボタン押下時のスロット
+    def on_rotate_image(self):
+        if self.menu_function.current_index < 0 or self.menu_function.current_index >= len(self.menu_function.image_data):
+            QMessageBox.warning(self, "警告", "回転させる画像が選択されていません。")
+            return
+
+        image_info = self.menu_function.image_data[self.menu_function.current_index]
+        directory = self.lineEdit.text()
+        image_path = os.path.join(directory, image_info["file_name"])
+
+        if not os.path.exists(image_path):
+            QMessageBox.critical(
+                self, "エラー", "画像ファイルが存在しません: {}".format(image_path))
+            return
+
+        try:
+            with Image.open(image_path) as img:
+                rotated = img.rotate(180, expand=True)
+                rotated.save(image_path)
+            QMessageBox.information(
+                self, "成功", "画像を180度回転させました: {}".format(image_info['file_name']))
+            self.display_selected_image()  # 表示を更新
+        except Exception as e:
+            QMessageBox.critical(
+                self, "エラー", "画像の回転中にエラーが発生しました:\n{}".format(e))

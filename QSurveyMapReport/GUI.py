@@ -47,6 +47,13 @@ class Ui_MainWindow(object):
         self.pushButton_3.setStyleSheet("border: 1px solid black;")
         self.pushButton_3.setObjectName("pushButton_3")
 
+        # **180度回転ボタンの追加**
+        self.pushButton_8 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_8.setGeometry(QtCore.QRect(
+            480, 540, 75, 20))  # pushButton_6の左隣
+        self.pushButton_8.setStyleSheet("border: 1px solid black;")
+        self.pushButton_8.setObjectName("pushButton_8")
+
         # pathの表示ボックス
         self.lineEdit = QtWidgets.QLineEdit(self.centralwidget)
         self.lineEdit.setGeometry(QtCore.QRect(20, 20, 715, 20))
@@ -118,3 +125,5 @@ class Ui_MainWindow(object):
         self.pushButton_5.setText(_translate("MainWindow", "▶"))
         self.pushButton_6.setText(_translate("MainWindow", "◀"))
         self.pushButton_7.setText(_translate("MainWindow", "make pdf"))
+        # **180度回転ボタンのテキスト設定**
+        self.pushButton_8.setText(_translate("MainWindow", "180°回転"))
