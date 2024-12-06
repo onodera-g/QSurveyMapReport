@@ -56,31 +56,12 @@ class Ui_MainWindow(object):
 
         # **180度回転ボタンの追加**
         self.pushButton_8 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_8.setGeometry(
-            QtCore.QRect(480, 540, 75, 75))  # サイズを大きく設定
+        self.pushButton_8.setGeometry(QtCore.QRect(480, 540, 75, 20))
         self.pushButton_8.setStyleSheet("border: 1px solid black;")
         self.pushButton_8.setObjectName("pushButton_8")
 
         # アイコンの設定
         script_dir = os.path.dirname(os.path.abspath(__file__))
-
-        # 180度回転アイコンの設定
-        rotate_icon_path = os.path.join(script_dir, "rotate_180_icon.png")
-        print(f"Icon path: {rotate_icon_path}")  # デバッグ用
-
-        if os.path.exists(rotate_icon_path):
-            rotate_icon = QtGui.QIcon(rotate_icon_path)
-            if not rotate_icon.isNull():
-                self.pushButton_8.setIcon(rotate_icon)
-                self.pushButton_8.setIconSize(
-                    QtCore.QSize(24, 24))  # アイコンのサイズを調整
-                self.pushButton_8.setText("")  # ボタンテキストを非表示にする
-                print("Rotate 180° icon loaded successfully.")
-            else:
-                print(
-                    f"Icon at {rotate_icon_path} is null. Please check the image file.")
-        else:
-            print(f"Icon file not found at {rotate_icon_path}")
 
         # **複数のボタンにアイコンを設定する**
         # ボタン名と対応するアイコンファイル名の辞書
@@ -91,6 +72,7 @@ class Ui_MainWindow(object):
             "pushButton_5": "right.png",
             "pushButton_6": "left.png",
             "pushButton_7": "pdf.png",
+            "pushButton_8": "rotate_180_icon.png"
         }
 
         # 各ボタンに対してアイコンを設定
