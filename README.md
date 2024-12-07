@@ -8,7 +8,7 @@ QSurveyMapReport is a QGIS plugin that processes photo Exif data and provides th
 
 2. **Generating PDFs**
    - Combines multiple photo data entries into a single PDF file.
-   - The PDF includes map locations, photo details, photo numbers, and descriptions.
+   - The PDF can includes photo numbers, description.
 
 ## Features
 - Easy integration with QGIS.
