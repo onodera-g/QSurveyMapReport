@@ -28,7 +28,13 @@ QSurveyMapReport is a QGIS plugin that processes photo Exif data and provides th
 ## Plugin Installation
 1. Download QSurveyMapReport from the following URL: [https://example.com/qsurvey](https://example.com/qsurvey).
 
-2. To install the plugin, open QGIS, go to 'Manage and Install Plugins', and select 'Install from ZIP file'. Then, choose the downloaded ZIP file to complete the installation.
+2. To install the plugin:
+
+   2.1 Open QGIS.
+
+   2.2 Navigate to 'Manage and Install Plugins' in the Plugins tab.
+
+   2.3 Select 'Install from ZIP file'.
 
 3. Restart QGIS and enable `QSurveyMapReport` from the plugin manager.
 
