@@ -193,7 +193,7 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
         for btn in [
             self.pushButton, self.pushButton_2, self.pushButton_3,
             self.pushButton_4, self.pushButton_5, self.pushButton_6,
-            self.pushButton_7,  # pushButton_7が存在する場合
+            self.pushButton_7, self.pushButton_9,
             getattr(self, 'pushButton_8', None)  # pushButton_8を追加
         ]:
             if btn:
@@ -217,8 +217,8 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pushButton_5.clicked.connect(self.on_show_next_image)
         self.pushButton_6.clicked.connect(self.on_show_previous_image)
         self.pushButton_7.clicked.connect(self.on_create_pdf)
-        # 新しく追加したボタンのシグナル接続
         self.pushButton_8.clicked.connect(self.on_rotate_image)
+        self.pushButton_9.clicked.connect(self.on_save_current_text)
 
         # listWidget の選択変更時に display_selected_image を呼び出す
         self.listWidget.itemSelectionChanged.connect(
@@ -308,6 +308,32 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
             QMessageBox.warning(self, "警告", "これ以上次の画像はありません。")
         self.listWidget.setCurrentRow(self.menu_function.current_index)
 
+    def on_save_current_text(self):
+        self.save_current_text()
+
+    def force_wrap_text(self, text, max_width=36.5):
+        """
+        ユーザー入力の各段落について、既存の改行を保持しつつ、
+        各行を全角1、半角0.5としてカウントし、max_width (36.5) を超える位置で
+        自動改行を挿入した文字列を返す
+        """
+        wrapped_lines = []
+        for paragraph in text.splitlines():
+            current_line = ""
+            current_width = 0
+            for char in paragraph:
+                char_width = 0.5 if unicodedata.east_asian_width(
+                    char) in "NaH" else 1
+                if current_width + char_width > max_width:
+                    wrapped_lines.append(current_line)
+                    current_line = char
+                    current_width = char_width
+                else:
+                    current_line += char
+                    current_width += char_width
+            wrapped_lines.append(current_line)
+        return "\n".join(wrapped_lines)
+
     def on_create_pdf(self):
         directory = self.lineEdit.text()
         if not directory:
@@ -322,17 +348,37 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
             image_path = os.path.join(directory, file_name)
             if os.path.exists(image_path):
                 image_paths.append(image_path)
+                # PDFに渡すテキストは元のテキスト（改行はそのまま）
                 data.append("{}, {}".format(file_name, text))
-
         if not image_paths:
             QMessageBox.warning(self, "警告", "有効な画像がありません。")
             return
+
+        # 警告判定用処理
+        exceed_warning = False
+        for image_info in self.menu_function.image_data:
+            text = image_info.get("text", "")
+            wrapped_text = self.force_wrap_text(text, max_width=36.5)
+            lines = wrapped_text.splitlines()
+            if len(lines) >= 4:
+                exceed_warning = True
+                break
+
+        if exceed_warning:
+            answer = QMessageBox.question(
+                self,
+                "警告",
+                "一部のテキストが4行以上になっています。\nPDF出力を続けますか？",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
+            if answer == QMessageBox.No:
+                return
 
         pdf_file, _ = QFileDialog.getSaveFileName(
             self, "PDFファイルを保存", "", "PDF Files (*.pdf);;All Files (*)")
         if not pdf_file:
             return
-
         if not pdf_file.lower().endswith(".pdf"):
             pdf_file += ".pdf"
 
@@ -343,6 +389,7 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
             QMessageBox.critical(self, "エラー", message)
 
     # リストウィジェットを更新
+
     def update_list_widget(self):
         self.listWidget.clear()
         for image_info in self.menu_function.image_data:
@@ -369,10 +416,7 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
             # 画像番号、ファイル名、テキストの表示
             if 0 <= self.menu_function.current_index < len(self.menu_function.image_data):
                 image_info = self.menu_function.image_data[self.menu_function.current_index]
-                formatted_text = self.format_text_with_line_breaks(
-                    image_info["text"])
-                self.textEdit.setPlainText(
-                    formatted_text)  # QPlainTextEdit用に変更
+                self.textEdit.setPlainText(image_info["text"])  # そのままテキストを設定
                 self.lineEdit_2.setText(str(image_info["number"]))
                 self.lineEdit_4.setText(image_info["file_name"])
 

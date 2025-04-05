@@ -14,37 +14,37 @@ class Ui_MainWindow(object):
 
         # path選択ボタン
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(750, 20, 75, 20))
+        self.pushButton.setGeometry(QtCore.QRect(710, 20, 75, 20))
         self.pushButton.setStyleSheet("border: 1px solid black;")
         self.pushButton.setObjectName("pushButton")
 
         # make csv ボタン
         self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_4.setGeometry(QtCore.QRect(750, 540, 75, 20))
+        self.pushButton_4.setGeometry(QtCore.QRect(710, 540, 75, 20))
         self.pushButton_4.setStyleSheet("border: 1px solid black;")
         self.pushButton_4.setObjectName("pushButton_4")
 
         # make pdfボタン
         self.pushButton_7 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_7.setGeometry(QtCore.QRect(750, 590, 75, 20))
+        self.pushButton_7.setGeometry(QtCore.QRect(710, 570, 75, 20))
         self.pushButton_7.setStyleSheet("border: 1px solid black;")
         self.pushButton_7.setObjectName("pushButton_7")
 
         # ◀ ボタン
         self.pushButton_6 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_6.setGeometry(QtCore.QRect(570, 540, 75, 20))
+        self.pushButton_6.setGeometry(QtCore.QRect(530, 540, 75, 20))
         self.pushButton_6.setStyleSheet("border: 1px solid black;")
         self.pushButton_6.setObjectName("pushButton_6")
 
         # ▶ ボタン
         self.pushButton_5 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_5.setGeometry(QtCore.QRect(660, 540, 75, 20))
+        self.pushButton_5.setGeometry(QtCore.QRect(620, 540, 75, 20))
         self.pushButton_5.setStyleSheet("border: 1px solid black;")
         self.pushButton_5.setObjectName("pushButton_5")
 
         # input mapボタン
         self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_2.setGeometry(QtCore.QRect(660, 590, 75, 20))
+        self.pushButton_2.setGeometry(QtCore.QRect(620, 570, 75, 20))
         self.pushButton_2.setStyleSheet("border: 1px solid black;")
         self.pushButton_2.setObjectName("pushButton_2")
 
@@ -56,9 +56,15 @@ class Ui_MainWindow(object):
 
         # **180度回転ボタンの追加**
         self.pushButton_8 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_8.setGeometry(QtCore.QRect(480, 540, 75, 20))
+        self.pushButton_8.setGeometry(QtCore.QRect(440, 540, 75, 20))
         self.pushButton_8.setStyleSheet("border: 1px solid black;")
         self.pushButton_8.setObjectName("pushButton_8")
+
+        # **SAVE　ボタン**
+        self.pushButton_9 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_9.setGeometry(QtCore.QRect(530, 570, 75, 20))
+        self.pushButton_9.setStyleSheet("border: 1px solid black;")
+        self.pushButton_9.setObjectName("pushButton_9")
 
         # アイコンの設定
         script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -72,14 +78,15 @@ class Ui_MainWindow(object):
             "pushButton_5": "right.png",
             "pushButton_6": "left.png",
             "pushButton_7": "pdf.png",
-            "pushButton_8": "rotate_180_icon.png"
+            "pushButton_8": "rotate_180_icon.png",
+            "pushButton_9": "save"
         }
 
         # 各ボタンに対してアイコンを設定
         for button_name, icon_filename in button_icon_mapping.items():
             button = getattr(self, button_name, None)
             if button is not None:
-                icon_path = os.path.join(script_dir, icon_filename)
+                icon_path = os.path.join(script_dir, "icon", icon_filename)
                 if os.path.exists(icon_path):
                     icon = QtGui.QIcon(icon_path)
                     if not icon.isNull():
@@ -97,7 +104,7 @@ class Ui_MainWindow(object):
 
         # pathの表示ボックス
         self.lineEdit = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit.setGeometry(QtCore.QRect(20, 20, 715, 20))
+        self.lineEdit.setGeometry(QtCore.QRect(20, 20, 680, 20))
         self.lineEdit.setObjectName("lineEdit")
 
         # 写真の一覧表示ボックス
@@ -108,25 +115,25 @@ class Ui_MainWindow(object):
 
         # 写真の表示ボックス
         self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(300, 70, 525, 290))
+        self.label.setGeometry(QtCore.QRect(300, 70, 480, 290))
         self.label.setStyleSheet("border: 1px solid black;")
         self.label.setObjectName("label")
 
         # 写真番号ボックス
         self.lineEdit_2 = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit_2.setGeometry(QtCore.QRect(300, 370, 525, 20))
+        self.lineEdit_2.setGeometry(QtCore.QRect(300, 370, 480, 20))
         self.lineEdit_2.setStyleSheet("border: 1px solid black;")
         self.lineEdit_2.setObjectName("lineEdit_2")
 
         # テキスト入力ボックス
         self.textEdit = QtWidgets.QPlainTextEdit(self.centralwidget)
-        self.textEdit.setGeometry(QtCore.QRect(300, 430, 540, 100))
+        self.textEdit.setGeometry(QtCore.QRect(300, 430, 480, 100))
         self.textEdit.setStyleSheet("border: 1px solid black;")
         self.textEdit.setObjectName("textEdit")
 
         # 写真ファイル名表示ボックス
         self.lineEdit_4 = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit_4.setGeometry(QtCore.QRect(300, 400, 525, 20))
+        self.lineEdit_4.setGeometry(QtCore.QRect(300, 400, 480, 20))
         self.lineEdit_4.setStyleSheet("border: 1px solid black;")
         self.lineEdit_4.setObjectName("lineEdit_4")
 
@@ -138,7 +145,7 @@ class Ui_MainWindow(object):
         # フォントメトリクスを使用して1文字の幅を取得
         font_metrics = QtGui.QFontMetrics(font)
         char_width = font_metrics.horizontalAdvance('M')  # 'M' は幅の広い文字として使用
-        wrap_width = char_width * 72  # 72全角文字分の幅を計算
+        wrap_width = char_width * 66  # 72全角文字分の幅を計算
 
         # QPlainTextEdit の改行設定を行う
         self.textEdit.setLineWrapMode(QtWidgets.QPlainTextEdit.WidgetWidth)
@@ -172,6 +179,7 @@ class Ui_MainWindow(object):
         self.label.setText(_translate("MainWindow", "TextLabel"))
         # 180度回転ボタンのテキストを非表示にしてアイコンのみにする
         self.pushButton_8.setText("")
+        self.pushButton_9.setText("save text")
 
 
 if __name__ == "__main__":
