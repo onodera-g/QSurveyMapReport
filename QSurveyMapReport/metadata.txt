@@ -1,0 +1,16 @@
+[general]
+name=QSurveyMapReport
+qgisMinimumVersion=3.0
+description=The Exif information of the photo file is analyzed and output as CSV layer.
+about=QSurveyMapReport can analyze the Exif information in a photo file and output it as a CSV layer. It can also compile photo files and output them as a single pdf.
+version=1.0
+author=0nodera gaku
+email=ga19981023ku@gmail.com
+repository=https://github.com/onodera-g/QSurveyMapReport
+icon=icon/icon.png
+
+# experimental flag
+experimental=False
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
