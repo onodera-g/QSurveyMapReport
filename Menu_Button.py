@@ -80,11 +80,11 @@ class QSurveyMapReport:
 
     def initGui(self):
         self.win = self.iface.mainWindow()
-        icon_path = ':/plugins/QSurveyMapReport/icon.png'
+        icon_path = ':/plugins/QSurveyMapReport/icon/icon.png'
         # メニュー設定
         self.add_action(
             icon_path=None,
-            text=u"Menu02",
+            text=u"QSurveyMapReport",
             callback=self.Menu02,
             parent=self.win)
 
