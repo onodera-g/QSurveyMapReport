@@ -1,47 +1,31 @@
 # QSurveyMapReport
+## 概要
+QSurveyMapReportは、写真ファイルのEXIF情報を解析し、QGIS上への点シンボルとして出力、また写真をまとめたPDFレポートを作成する機能を備えたQGISプラグインです。
+出力された点シンボルとPDFレポートと合わせることで、簡易な調査報告書を作成することが可能です。
 
-## Overview
-QSurveyMapReport is a QGIS plugin that processes photo Exif data and provides the following features:
+## 主な機能
+- 写真ファイルに保存されたEXIFメタデータ（GPS座標・撮影方位など）の解析及び含むCSVファイルへの出力
+- 出力したCSVをQGISに読み込み、点シンボルとして出力
+- 2行×3列のレイアウトによる写真、文章を含むPDFレポートの作成
 
-1. **Parsing Exif Data and Creating CSV Layers**
-   - Extracts Exif data (latitude, longitude, shooting direction, etc.) from photo files and adds them as CSV layers to QGIS.
+## インストール方法
+1. URL より、プラグイン本体のZIPファイル(QSurveyMapReport)をダウンロード
+2.  **プラグイン > プラグインの管理とインストール > ZIPからインストール**より、ダウンロードしたZIPファイルを選択し、インストール
+3. QGISを再起動
+4. **プラグイン > プラグインの管理とインストール** から「QSurveyMapReport」を有効化
 
-2. **Generating PDFs**
-   - Combines multiple photo data entries into a single PDF file.
-   - The PDF can includes photo numbers, description.
+## 使い方
+1. QSurveyMapReportツールバーまたはメニューからプラグインを起動
+2. **フォルダ選択** ボタンで、JPEG/PNG画像が格納されたディレクトリを指定
+3. 画像一覧が表示されるので、**前へ/次へ** ボタンで切り替えながら説明文を入力
+4. **CSV保存** でEXIFメタデータをCSVに出力
+5. **CSVをQGISに読み込み** で地図上に点レイヤとして表示
+6. **PDF作成** で注釈付き画像をまとめたPDFレポートを出力
 
-## Features
-- Easy integration with QGIS.
-- Generates accurate location-based reports.
-- Customizable PDF layouts.
+## 要件
+- QGIS 3.x以降
 
-## Requirements
-- QGIS 3.x
-- Python 3.x
-- Required Python Libraries:
-  - `exifread`
-  - `Pillow`
-  - `reportlab`
-  - `unicodedata`
-  - `reportlab`
-
-## Plugin Installation
-1. Download QSurveyMapReport from the following URL: [https://example.com/qsurvey](https://example.com/qsurvey).
-
-2. To install the plugin:
-
-   2.1 Open QGIS.
-
-   2.2 Navigate to 'Manage and Install Plugins' in the Plugins tab.
-
-   2.3 Select 'Install from ZIP file'.
-
-3. Restart QGIS and enable `QSurveyMapReport` from the plugin manager.
-
-## Usage
-tmp
-
-## License
-tmp
+## ライセンス
+MITライセンスを適用しています。詳しくは `LICENSE` ファイルを参照ください。
 
 
