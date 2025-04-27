@@ -1,213 +1,158 @@
-# Menu_Dialog.py
-
+import os
+import csv
+import unicodedata
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtWidgets import (
-    QPushButton, QApplication, QMainWindow,
-    QFileDialog, QLabel, QListWidget, QPlainTextEdit, QMessageBox
+    QMainWindow, QFileDialog, QMessageBox,
+    QListWidget, QLabel, QPlainTextEdit, QPushButton
 )
 from qgis.core import (
     QgsVectorLayer, QgsProject, QgsPalLayerSettings,
-    QgsVectorLayerSimpleLabeling, QgsMarkerSymbol, QgsProperty, QgsSymbolLayer
+    QgsVectorLayerSimpleLabeling, QgsMarkerSymbol,
+    QgsProperty, QgsSymbolLayer
 )
-from qgis.gui import *
-from PyQt5 import uic, QtWidgets
-
-import os
-import csv
+from .GUI import Ui_MainWindow
+from .pdf_creator import PDFCreator
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
-from .GUI import Ui_MainWindow  # 既存のGUIファイルをインポート
-from .pdf_creator import PDFCreator
-import unicodedata
-
-
-QString = str
 
 
 class Menu_Function:
+    """画像リスト管理とEXIF/GPS取得機能を提供するクラス"""
+
     def __init__(self, iface):
         self.iface = iface
-        self.canvas = self.iface.mapCanvas() if self.iface else None
-        self.image_data = []
+        self.canvas = iface.mapCanvas() if iface else None
+        self.image_data = []  # {'file_name', 'text', 'number'} の辞書リスト
         self.current_index = -1
 
-    # EXIFデータを取得する関数
     def get_exif_data(self, image_path):
+        """画像からEXIFデータを抽出し、辞書で返却"""
         try:
-            with Image.open(image_path) as image:
-                exif_data = image._getexif()
-                if not exif_data:
-                    return None
-                exif_dict = {}
-                for tag, value in exif_data.items():
-                    decoded_tag = TAGS.get(tag, tag)
-                    exif_dict[decoded_tag] = value
-                return exif_dict
+            with Image.open(image_path) as img:
+                exif = img._getexif()
+                return None if not exif else {TAGS.get(k, k): v for k, v in exif.items()}
         except Exception as e:
-            print("EXIFデータの取得中にエラーが発生しました ({}): {}".format(image_path, e))
+            print(f"EXIF取得エラー({image_path}): {e}")
             return None
 
-    # GPS情報を取得する関数
     def get_gps_info(self, exif_data):
-        gps_info = exif_data.get("GPSInfo", None)
-        if not gps_info:
+        """EXIFから緯度・経度・方位を計算して返却"""
+        gps = exif_data.get("GPSInfo", {}) if exif_data else {}
+        if not gps:
             return None, None, None
 
-        lat, lon, direction = None, None, None
-
-        def convert_to_degrees(value):
-            d, m, s = value
-
-            def rational_to_float(rational):
+        def to_deg(vals):
+            def rat2f(r):
                 try:
-                    return float(rational)
-                except TypeError:
-                    return float(rational.numerator) / float(rational.denominator)
-            d = rational_to_float(d)
-            m = rational_to_float(m)
-            s = rational_to_float(s)
-            return d + (m / 60.0) + (s / 3600.0)
+                    return float(r)
+                except:
+                    return r.numerator / r.denominator
+            d, m, s = vals
+            return rat2f(d) + rat2f(m)/60 + rat2f(s)/3600
 
-        for key in gps_info.keys():
-            decoded_key = GPSTAGS.get(key, key)
-            if decoded_key == "GPSLatitude":
-                lat = convert_to_degrees(gps_info[key])
-                if gps_info.get("GPSLatitudeRef") == "S":
-                    lat = -lat
-            elif decoded_key == "GPSLongitude":
-                lon = convert_to_degrees(gps_info[key])
-                if gps_info.get("GPSLongitudeRef") == "W":
-                    lon = -lon
-            elif decoded_key == "GPSImgDirection":
-                direction = gps_info[key]
+        lat = lon = dir_ = None
+        for k, v in gps.items():
+            key = GPSTAGS.get(k, k)
+            if key == "GPSLatitude":
+                lat = to_deg(v) * (-1 if gps.get(1) == "S" else 1)
+            elif key == "GPSLongitude":
+                lon = to_deg(v) * (-1 if gps.get(3) == "W" else 1)
+            elif key == "GPSImgDirection":
+                dir_ = v
+        return lat, lon, dir_
 
-        return lat, lon, direction
-
-    # 画像一覧を更新
     def update_image_list(self, directory):
+        """ディレクトリ内の画像ファイル一覧を読み込む"""
         self.image_data.clear()
-        files = [f for f in os.listdir(
-            directory) if f.lower().endswith(('.jpeg', '.jpg', '.png'))]
-        for index, file_name in enumerate(files):
-            self.image_data.append(
-                {"file_name": file_name, "text": "", "number": index + 1})
-        if self.image_data:
-            self.current_index = 0
-        else:
-            self.current_index = -1
+        files = [f for f in os.listdir(directory)
+                 if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+        for i, fn in enumerate(files, start=1):
+            self.image_data.append({'file_name': fn, 'text': '', 'number': i})
+        self.current_index = 0 if self.image_data else -1
 
-    # 現在のテキストを保存
     def save_current_text(self, text):
-        if self.current_index >= 0 and self.current_index < len(self.image_data):
-            self.image_data[self.current_index]["text"] = text
+        """現在のインデックスに対応するテキストを保存"""
+        idx = self.current_index
+        if 0 <= idx < len(self.image_data):
+            self.image_data[idx]['text'] = text
 
-    # CSVファイルの作成
     def prepare_csv_data(self, directory):
-        output_data = []
-        supported_extensions = (".png", ".jpg", ".jpeg", ".bmp", ".gif")
-        for index, image_info in enumerate(self.image_data, start=1):
-            file_name = image_info.get("file_name")
-            if not file_name.lower().endswith(supported_extensions):
-                continue  # サポートされていないファイル形式はスキップ
-            image_path = os.path.join(directory, file_name)
-            exif_data = self.get_exif_data(image_path)
-            if exif_data:
-                lat, lon, direction = self.get_gps_info(exif_data)
-            else:
-                lat, lon, direction = None, None, None
-            output_data.append([
-                index,
-                file_name,
-                lat if lat is not None else "N/A",
-                lon if lon is not None else "N/A",
-                direction if direction is not None else "N/A"
+        """CSV出力用データを作成して返却"""
+        data = []
+        for idx, info in enumerate(self.image_data, start=1):
+            path = os.path.join(directory, info['file_name'])
+            exif = self.get_exif_data(path) or {}
+            lat, lon, dir_ = self.get_gps_info(exif)
+            data.append([
+                idx, info['file_name'],
+                lat if lat is not None else 'N/A',
+                lon if lon is not None else 'N/A',
+                dir_ if dir_ is not None else 'N/A'
             ])
-        return output_data
+        return data
 
-    # CSVをポイントデータとしてレイヤに追加
     def load_csv_to_qgis(self, csv_file):
-        required_headers = ["番号", "ファイル名", "緯度", "経度", "撮影方位"]
+        """CSVを読み込み、QGISにポイントレイヤとして追加"""
+        headers = ["番号", "ファイル名", "緯度", "経度", "撮影方位"]
         try:
-            with open(csv_file, mode='r', encoding='utf-8') as file:
-                reader = csv.reader(file)
-                headers = next(reader)
-                if headers[:5] != required_headers:
-                    return False, "CSVファイルのヘッダーが正しくありません。\n必要なヘッダー: {}".format(', '.join(required_headers))
+            with open(csv_file, encoding='utf-8') as f:
+                reader = csv.reader(f)
+                if next(reader)[:5] != headers:
+                    return False, f"ヘッダー不正: {headers}"
         except Exception as e:
-            return False, "CSVファイルの読み込み中にエラーが発生しました:\n{}".format(e)
+            return False, f"CSV読込エラー: {e}"
 
-        try:
-            uri = "file:///{csv_file}?delimiter=,&xField=経度&yField=緯度&crs=EPSG:4326".format(
-                csv_file=csv_file)
-            layer_name = os.path.splitext(os.path.basename(csv_file))[0]
-            csv_layer = QgsVectorLayer(uri, layer_name, "delimitedtext")
-            if not csv_layer.isValid():
-                return False, "CSVファイルからレイヤを作成できませんでした。"
+        uri = f"file:///{csv_file}?delimiter=,&xField=経度&yField=緯度&crs=EPSG:4326"
+        layer = QgsVectorLayer(uri, os.path.splitext(os.path.basename(csv_file))[0], 'delimitedtext')
+        if not layer.isValid():
+            return False, 'レイヤ作成失敗'
 
-            QgsProject.instance().addMapLayer(csv_layer)
+        QgsProject.instance().addMapLayer(layer)
+        sym = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'red', 'size': '3'})
+        if sym.symbolLayerCount():
+            sl = sym.symbolLayer(0)
+            if isinstance(sl, QgsSymbolLayer):
+                sl.setDataDefinedProperty(QgsSymbolLayer.PropertyAngle,
+                                          QgsProperty.fromExpression('"撮影方位"'))
+        layer.renderer().setSymbol(sym)
+        layer.triggerRepaint()
 
-            symbol = QgsMarkerSymbol.createSimple(
-                {'name': 'triangle', 'color': 'red', 'size': '3'})
-            if symbol.symbolLayerCount() > 0:
-                symbol_layer = symbol.symbolLayer(0)
-                if isinstance(symbol_layer, QgsSymbolLayer):
-                    rotation_property = QgsProperty.fromExpression('"撮影方位"')
-                    symbol_layer.setDataDefinedProperty(
-                        QgsSymbolLayer.PropertyAngle, rotation_property)
-                else:
-                    return False, "シンボルレイヤーがサポートされていません。回転を設定できません。"
-            else:
-                return False, "シンボルにシンボルレイヤーが含まれていません。回転を設定できません。"
+        settings = QgsPalLayerSettings()
+        settings.fieldName = '番号'
+        settings.enabled = True
+        layer.setLabeling(QgsVectorLayerSimpleLabeling(settings))
+        layer.setLabelsEnabled(True)
 
-            csv_layer.renderer().setSymbol(symbol)
-            csv_layer.triggerRepaint()
-
-            labeling = QgsPalLayerSettings()
-            labeling.fieldName = "番号"
-            labeling.enabled = True
-            csv_layer.setLabeling(QgsVectorLayerSimpleLabeling(labeling))
-            csv_layer.setLabelsEnabled(True)
-
-            return True, "CSVファイルがレイヤとしてQGISに追加されました: {}".format(layer_name)
-        except Exception as e:
-            return False, "CSVファイルをQGISに追加する際にエラーが発生しました:\n{}".format(e)
+        return True, 'QGISにレイヤ追加完了'
 
 
-class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
+class Menu_Dialog(QMainWindow, Ui_MainWindow):
+    """メインダイアログの動作を定義するクラス"""
+
     def __init__(self, iface, parent=None):
-        super(Menu_Dialog, self).__init__(parent)
+        super().__init__(parent)
         self.setupUi(self)
         self.iface = iface
         self.menu_function = Menu_Function(iface)
 
-        # ボタンにスタイルシートを設定
-        button_styles = """
-            QPushButton {
-                background-color: lightgray;  /* 通常時の背景色 */
-            }
-            QPushButton:hover {
-                background-color: lightblue;  /* ホバー時の背景色 */
-            }
-        """
-        for btn in [
-            self.pushButton, self.pushButton_2, self.pushButton_3,
-            self.pushButton_4, self.pushButton_5, self.pushButton_6,
-            self.pushButton_7,
-            getattr(self, 'pushButton_8', None)  # pushButton_8を追加
-        ]:
+        # ボタンのスタイル設定
+        btn_style = 'QPushButton {background:lightgray;} QPushButton:hover {background:lightblue;}'
+        for btn in [self.pushButton, self.pushButton_2, self.pushButton_3,
+                    self.pushButton_4, self.pushButton_5, self.pushButton_6,
+                    self.pushButton_7, getattr(self, 'pushButton_8', None)]:
             if btn:
-                btn.setStyleSheet(button_styles)
+                btn.setStyleSheet(btn_style)
 
-        # lineEdit_2とlineEdit_4の設定
-        self.lineEdit_2.setAlignment(Qt.AlignCenter)  # 中央揃え
-        self.lineEdit_2.setReadOnly(True)  # 編集不可
-        self.lineEdit_4.setAlignment(Qt.AlignCenter)  # 中央揃え
-        self.lineEdit_4.setReadOnly(True)  # 編集不可
+        # lineEdit_2, lineEdit_4 の設定
+        for le in (self.lineEdit_2, self.lineEdit_4):
+            le.setAlignment(Qt.AlignCenter)
+            le.setReadOnly(True)
 
-        # QLabel の中央揃えを設定
+        # 画像表示エリアの初期化
         self.label.setAlignment(Qt.AlignCenter)
-        self.display_empty_image()  # 初期表示
+        self.display_empty_image()
 
         # シグナル接続
         self.pushButton.clicked.connect(self.on_select_path)
@@ -218,265 +163,199 @@ class Menu_Dialog(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pushButton_6.clicked.connect(self.on_show_previous_image)
         self.pushButton_7.clicked.connect(self.on_create_pdf)
         self.pushButton_8.clicked.connect(self.on_rotate_image)
+        self.listWidget.itemSelectionChanged.connect(self.on_list_selection_changed)
 
-        # listWidget の選択変更時に display_selected_image を呼び出す
-        self.listWidget.itemSelectionChanged.connect(
-            self.display_selected_image)
+    def on_list_selection_changed(self):
+        # リスト選択変更時にテキストを保存して表示を更新
+        self.save_current_text()
+        self.display_selected_image()
 
-    # ボタン押下時のスロット
     def on_select_path(self):
-        directory = QFileDialog.getExistingDirectory(
-            self, "ディレクトリを選択してください", "")
-        if directory:
-            self.lineEdit.setText(directory)
-            self.menu_function.update_image_list(directory)
-            self.update_list_widget()
-
-    def on_save_csv(self):
-        directory = self.lineEdit.text()
-        if not directory:
-            QMessageBox.warning(self, "警告", "画像が存在するディレクトリが指定されていません。")
+        # ディレクトリ選択ダイアログを開き、画像一覧を更新
+        d = QFileDialog.getExistingDirectory(self, "ディレクトリ選択", "")
+        if not d:
             return
-
-        output_data = self.menu_function.prepare_csv_data(directory)
-        if not output_data:
-            QMessageBox.warning(self, "警告", "画像データがありません。")
-            return
-
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        csv_file, _ = QFileDialog.getSaveFileName(
-            self, "CSVファイルを保存", "", "CSV Files (*.csv);;All Files (*)", options=options)
-        if not csv_file:
-            return  # ユーザーがキャンセルした場合
-
-        # ファイル名に拡張子が含まれていない場合、'.csv' を追加
-        if not os.path.splitext(csv_file)[1].lower() == '.csv':
-            csv_file += '.csv'
-
-        try:
-            with open(csv_file, mode='w', newline='', encoding='utf-8') as file:
-                writer = csv.writer(file)
-                writer.writerow(["番号", "ファイル名", "緯度", "経度", "撮影方位"])
-                writer.writerows(output_data)
-            QMessageBox.information(
-                self, "成功", "CSVファイルが保存されました:\n{}".format(csv_file))
-        except Exception as e:
-            QMessageBox.critical(
-                self, "エラー", "CSVファイルの保存中にエラーが発生しました:\n{}".format(e))
+        self.lineEdit.setText(d)
+        self.menu_function.update_image_list(d)
+        self.update_list_widget()
 
     def on_reset_and_update_images(self):
-        directory = self.lineEdit.text()
-        if directory:
-            self.menu_function.update_image_list(directory)
-            self.update_list_widget()
-            # テキストのリセット
-            self.textEdit.clear()
-            self.lineEdit_2.clear()
-            self.lineEdit_4.clear()
-            self.display_empty_image()  # 空の画像を表示
+        # 画像一覧とUIをリセットして再読み込み
+        d = self.lineEdit.text()
+        if not d:
+            return
+        self.menu_function.update_image_list(d)
+        self.update_list_widget()
+        self.textEdit.clear()
+        self.lineEdit_2.clear()
+        self.lineEdit_4.clear()
+        self.display_empty_image()
+
+    def on_save_csv(self):
+        # CSV保存処理
+        d = self.lineEdit.text()
+        data = self.menu_function.prepare_csv_data(d)
+        if not data:
+            QMessageBox.warning(self, "警告", "画像データがありません。")
+            return
+        opts = QFileDialog.Options()
+        opts |= QFileDialog.DontUseNativeDialog
+        path, _ = QFileDialog.getSaveFileName(self, "CSV保存", "", "CSV (*.csv)", options=opts)
+        if not path:
+            return
+        if not path.lower().endswith(".csv"):
+            path += ".csv"
+        try:
+            with open(path, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(["番号", "ファイル名", "緯度", "経度", "撮影方位"])
+                writer.writerows(data)
+            QMessageBox.information(self, "成功", f"CSV保存: {path}")
+        except Exception as e:
+            QMessageBox.critical(self, "エラー", f"保存失敗: {e}")
 
     def on_load_csv_to_qgis(self):
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        csv_file, _ = QFileDialog.getOpenFileName(
-            self, "CSVファイルを選択", "", "CSV Files (*.csv);;All Files (*)", options=options)
-        if not csv_file:
-            return  # ユーザーがキャンセルした場合
-
-        success, message = self.menu_function.load_csv_to_qgis(csv_file)
-        if success:
-            QMessageBox.information(self, "成功", message)
+        # QGISにCSVをインポート
+        opts = QFileDialog.Options()
+        opts |= QFileDialog.DontUseNativeDialog
+        path, _ = QFileDialog.getOpenFileName(self, "CSV選択", "", "CSV (*.csv)", options=opts)
+        if not path:
+            return
+        ok, msg = self.menu_function.load_csv_to_qgis(path)
+        if ok:
+            QMessageBox.information(self, "成功", msg)
         else:
-            QMessageBox.critical(self, "エラー", message)
+            QMessageBox.critical(self, "エラー", msg)
 
     def on_show_previous_image(self):
+        # 前の画像に移動して表示更新
         self.save_current_text()
-        self.menu_function.current_index -= 1
-        if self.menu_function.current_index < 0:
-            self.menu_function.current_index = 0
-            QMessageBox.warning(self, "警告", "これ以上前の画像はありません。")
-        self.listWidget.setCurrentRow(self.menu_function.current_index)
+        ni = max(self.menu_function.current_index - 1, 0)
+        if ni == self.menu_function.current_index:
+            QMessageBox.warning(self, "警告", "これ以上前はありません。")
+            return
+        self.menu_function.current_index = ni
+        self.listWidget.blockSignals(True)
+        self.listWidget.setCurrentRow(ni)
+        self.listWidget.blockSignals(False)
+        self.display_selected_image()
 
     def on_show_next_image(self):
+        # 次の画像に移動して表示更新
         self.save_current_text()
-        self.menu_function.current_index += 1
-        if self.menu_function.current_index >= len(self.menu_function.image_data):
-            self.menu_function.current_index = len(
-                self.menu_function.image_data) - 1
-            QMessageBox.warning(self, "警告", "これ以上次の画像はありません。")
-        self.listWidget.setCurrentRow(self.menu_function.current_index)
-
-    def on_save_current_text(self):
-        self.save_current_text()
-
-    def force_wrap_text(self, text, max_width=36.5):
-        """
-        ユーザー入力の各段落について、既存の改行を保持しつつ、
-        各行を全角1、半角0.5としてカウントし、max_width (36.5) を超える位置で
-        自動改行を挿入した文字列を返す
-        """
-        wrapped_lines = []
-        for paragraph in text.splitlines():
-            current_line = ""
-            current_width = 0
-            for char in paragraph:
-                char_width = 0.5 if unicodedata.east_asian_width(
-                    char) in "NaH" else 1
-                if current_width + char_width > max_width:
-                    wrapped_lines.append(current_line)
-                    current_line = char
-                    current_width = char_width
-                else:
-                    current_line += char
-                    current_width += char_width
-            wrapped_lines.append(current_line)
-        return "\n".join(wrapped_lines)
+        ni = min(self.menu_function.current_index + 1, len(self.menu_function.image_data) - 1)
+        if ni == self.menu_function.current_index:
+            QMessageBox.warning(self, "警告", "これ以上次はありません。")
+            return
+        self.menu_function.current_index = ni
+        self.listWidget.blockSignals(True)
+        self.listWidget.setCurrentRow(ni)
+        self.listWidget.blockSignals(False)
+        self.display_selected_image()
 
     def on_create_pdf(self):
+        # PDF作成処理
         self.save_current_text()
-        directory = self.lineEdit.text()
-        if not directory:
-            QMessageBox.warning(self, "警告", "画像が存在するディレクトリが指定されていません。")
-            return
-
-        image_paths = []
-        data = []
-        for image_info in self.menu_function.image_data:
-            file_name = image_info.get("file_name")
-            text = image_info.get("text", "")
-            image_path = os.path.join(directory, file_name)
-            if os.path.exists(image_path):
-                image_paths.append(image_path)
-                # PDFに渡すテキストは元のテキスト（改行はそのまま）
-                data.append("{}, {}".format(file_name, text))
-        if not image_paths:
+        d = self.lineEdit.text()
+        paths, texts = [], []
+        for info in self.menu_function.image_data:
+            p = os.path.join(d, info['file_name'])
+            if os.path.exists(p):
+                paths.append(p)
+                texts.append(f"{info['file_name']}, {info['text']}")
+        if not paths:
             QMessageBox.warning(self, "警告", "有効な画像がありません。")
             return
 
-        # 警告判定用処理
-        exceed_warning = False
-        for image_info in self.menu_function.image_data:
-            text = image_info.get("text", "")
-            wrapped_text = self.force_wrap_text(text, max_width=36.5)
-            lines = wrapped_text.splitlines()
-            if len(lines) >= 4:
-                exceed_warning = True
+        # 4行超え警告
+        for info in self.menu_function.image_data:
+            if len(self.force_wrap_text(info['text']).splitlines()) >= 4:
+                ans = QMessageBox.question(self, "警告", "4行超があります。続行？",
+                                           QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                if ans == QMessageBox.No:
+                    return
                 break
 
-        if exceed_warning:
-            answer = QMessageBox.question(
-                self,
-                "警告",
-                "一部のテキストが4行以上になっています。\nPDF出力を続けますか？",
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.No
-            )
-            if answer == QMessageBox.No:
-                return
-
-        pdf_file, _ = QFileDialog.getSaveFileName(
-            self, "PDFファイルを保存", "", "PDF Files (*.pdf);;All Files (*)")
-        if not pdf_file:
+        file, _ = QFileDialog.getSaveFileName(self, "PDF保存", "", "PDF (*.pdf)")
+        if not file:
             return
-        if not pdf_file.lower().endswith(".pdf"):
-            pdf_file += ".pdf"
+        if not file.lower().endswith('.pdf'):
+            file += '.pdf'
 
-        success, message = PDFCreator.create_pdf(image_paths, pdf_file, data)
-        if success:
-            QMessageBox.information(self, "成功", message)
+        ok, msg = PDFCreator.create_pdf(paths, file, texts)
+        if ok:
+            QMessageBox.information(self, "成功", msg)
         else:
-            QMessageBox.critical(self, "エラー", message)
+            QMessageBox.critical(self, "エラー", msg)
 
-    # リストウィジェットを更新
     def update_list_widget(self):
+        # リストウィジェットを更新
         self.listWidget.clear()
-        for image_info in self.menu_function.image_data:
-            self.listWidget.addItem(image_info["file_name"])
+        for info in self.menu_function.image_data:
+            self.listWidget.addItem(info['file_name'])
         if self.menu_function.image_data:
             self.listWidget.setCurrentRow(self.menu_function.current_index)
         else:
             self.display_empty_image()
 
-    # 現在のテキストを保存
     def save_current_text(self):
-        text = self.textEdit.toPlainText()  # QPlainTextEdit用に変更
-        self.menu_function.save_current_text(text)
+        # テキスト保存ヘルパー
+        txt = self.textEdit.toPlainText()
+        self.menu_function.save_current_text(txt)
 
-    # 選択した画像と付随する情報を表示
     def display_selected_image(self):
-        selected_items = self.listWidget.selectedItems()
-        if selected_items:
-            selected_file = selected_items[0].text()
-            directory = self.lineEdit.text()
-            file_path = os.path.join(directory, selected_file)
-            self.menu_function.current_index = self.listWidget.currentRow()
-
-            # 画像番号、ファイル名、テキストの表示
-            if 0 <= self.menu_function.current_index < len(self.menu_function.image_data):
-                image_info = self.menu_function.image_data[self.menu_function.current_index]
-                self.textEdit.setPlainText(image_info["text"])  # そのままテキストを設定
-                self.lineEdit_2.setText(str(image_info["number"]))
-                self.lineEdit_4.setText(image_info["file_name"])
-
-            pixmap = QPixmap(file_path)
-            if not pixmap.isNull():
-                scaled_pixmap = pixmap.scaled(
-                    self.label.width(), self.label.height(),
-                    Qt.KeepAspectRatio, Qt.SmoothTransformation
-                )
-                self.label.setPixmap(scaled_pixmap)
-            else:
-                self.label.setText("画像の読み込みに失敗しました")
+        # 選択中の画像とテキストを表示
+        items = self.listWidget.selectedItems()
+        if not items:
+            return self.display_empty_image()
+        row = self.listWidget.currentRow()
+        self.menu_function.current_index = row
+        info = self.menu_function.image_data[row]
+        self.textEdit.setPlainText(info['text'])
+        self.lineEdit_2.setText(str(info['number']))
+        self.lineEdit_4.setText(info['file_name'])
+        pix = QPixmap(os.path.join(self.lineEdit.text(), info['file_name']))
+        if pix.isNull():
+            self.label.setText("画像読み込み失敗")
         else:
-            self.display_empty_image()
+            self.label.setPixmap(pix.scaled(self.label.width(), self.label.height(),Qt.KeepAspectRatio,Qt.SmoothTransformation))
 
-    # 真っ白な画像を表示
     def display_empty_image(self):
-        blank_image = QImage(self.label.size(), QImage.Format_RGB32)
-        blank_image.fill(Qt.white)
-        self.label.setPixmap(QPixmap.fromImage(blank_image))
+        # 空画像を表示
+        img = QImage(self.label.size(), QImage.Format_RGB32)
+        img.fill(Qt.white)
+        self.label.setPixmap(QPixmap.fromImage(img))
 
-    def format_text_with_line_breaks(self, text, max_length=36):
-        formatted_text = ""
-        current_length = 0
-        buffer = ""
+    def force_wrap_text(self, text, max_width=36.5):
+        # 強制改行ロジック
+        lines = []
+        for para in text.splitlines():
+            cur, w = '', 0
+            for c in para:
+                cw = 0.5 if unicodedata.east_asian_width(c) in 'NaH' else 1
+                if w + cw > max_width:
+                    lines.append(cur)
+                    cur, w = c, cw
+                else:
+                    cur, w = cur + c, w + cw
+            lines.append(cur)
+        return '\n'.join(lines)
 
-        for char in text:
-            char_width = 0.5 if unicodedata.east_asian_width(
-                char) in "NaH" else 1
-            if current_length + char_width > max_length:
-                formatted_text += buffer + "\n"
-                buffer = ""
-                current_length = 0
-            buffer += char
-            current_length += char_width
-
-        formatted_text += buffer
-        return formatted_text
-
-    # 180度回転ボタン押下時のスロット
     def on_rotate_image(self):
-        if self.menu_function.current_index < 0 or self.menu_function.current_index >= len(self.menu_function.image_data):
-            QMessageBox.warning(self, "警告", "回転させる画像が選択されていません。")
+        # 画像を180度回転して保存・再表示
+        idx = self.menu_function.current_index
+        if idx < 0:
+            QMessageBox.warning(self, "警告", "選択された画像がありません。")
             return
-
-        image_info = self.menu_function.image_data[self.menu_function.current_index]
-        directory = self.lineEdit.text()
-        image_path = os.path.join(directory, image_info["file_name"])
-
-        if not os.path.exists(image_path):
-            QMessageBox.critical(
-                self, "エラー", "画像ファイルが存在しません: {}".format(image_path))
+        fn = self.menu_function.image_data[idx]['file_name']
+        path = os.path.join(self.lineEdit.text(), fn)
+        if not os.path.exists(path):
+            QMessageBox.critical(self, "エラー", f"ファイルがありません: {path}")
             return
-
         try:
-            with Image.open(image_path) as img:
-                rotated = img.rotate(180, expand=True)
-                rotated.save(image_path)
-            QMessageBox.information(
-                self, "成功", "画像を180度回転させました: {}".format(image_info['file_name']))
-            self.display_selected_image()  # 表示を更新
+            with Image.open(path) as img:
+                img.rotate(180, expand=True).save(path)
+            QMessageBox.information(self, "成功", f"{fn} を回転しました")
+            self.display_selected_image()
         except Exception as e:
-            QMessageBox.critical(
-                self, "エラー", "画像の回転中にエラーが発生しました:\n{}".format(e))
+            QMessageBox.critical(self, "エラー", f"回転中エラー: {e}")
