@@ -105,12 +105,14 @@ class Menu_Function:
             return False, f"CSV読込エラー: {e}"
 
         uri = f"file:///{csv_file}?delimiter=,&xField=経度&yField=緯度&crs=EPSG:4326"
-        layer = QgsVectorLayer(uri, os.path.splitext(os.path.basename(csv_file))[0], 'delimitedtext')
+        layer = QgsVectorLayer(uri, os.path.splitext(
+            os.path.basename(csv_file))[0], 'delimitedtext')
         if not layer.isValid():
             return False, 'レイヤ作成失敗'
 
         QgsProject.instance().addMapLayer(layer)
-        sym = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'red', 'size': '3'})
+        sym = QgsMarkerSymbol.createSimple(
+            {'name': 'triangle', 'color': 'red', 'size': '3'})
         if sym.symbolLayerCount():
             sl = sym.symbolLayer(0)
             if isinstance(sl, QgsSymbolLayer):
@@ -163,7 +165,8 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
         self.pushButton_6.clicked.connect(self.on_show_previous_image)
         self.pushButton_7.clicked.connect(self.on_create_pdf)
         self.pushButton_8.clicked.connect(self.on_rotate_image)
-        self.listWidget.itemSelectionChanged.connect(self.on_list_selection_changed)
+        self.listWidget.itemSelectionChanged.connect(
+            self.on_list_selection_changed)
 
     def on_list_selection_changed(self):
         # リスト選択変更時にテキストを保存して表示を更新
@@ -200,7 +203,8 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
             return
         opts = QFileDialog.Options()
         opts |= QFileDialog.DontUseNativeDialog
-        path, _ = QFileDialog.getSaveFileName(self, "CSV保存", "", "CSV (*.csv)", options=opts)
+        path, _ = QFileDialog.getSaveFileName(
+            self, "CSV保存", "", "CSV (*.csv)", options=opts)
         if not path:
             return
         if not path.lower().endswith(".csv"):
@@ -210,15 +214,16 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
                 writer = csv.writer(f)
                 writer.writerow(["番号", "ファイル名", "緯度", "経度", "撮影方位"])
                 writer.writerows(data)
-            QMessageBox.information(self, "成功", f"CSV保存: {path}")
+            QMessageBox.information(self, "成功", f"CSVを保存しました。\n {path}")
         except Exception as e:
-            QMessageBox.critical(self, "エラー", f"保存失敗: {e}")
+            QMessageBox.critical(self, "エラー", f"CSVの保存に失敗しました。\n {e}")
 
     def on_load_csv_to_qgis(self):
         # QGISにCSVをインポート
         opts = QFileDialog.Options()
         opts |= QFileDialog.DontUseNativeDialog
-        path, _ = QFileDialog.getOpenFileName(self, "CSV選択", "", "CSV (*.csv)", options=opts)
+        path, _ = QFileDialog.getOpenFileName(
+            self, "CSV選択", "", "CSV (*.csv)", options=opts)
         if not path:
             return
         ok, msg = self.menu_function.load_csv_to_qgis(path)
@@ -232,7 +237,7 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
         self.save_current_text()
         ni = max(self.menu_function.current_index - 1, 0)
         if ni == self.menu_function.current_index:
-            QMessageBox.warning(self, "警告", "これ以上前はありません。")
+            QMessageBox.warning(self, "警告", "これ以上に前に画像がありません。")
             return
         self.menu_function.current_index = ni
         self.listWidget.blockSignals(True)
@@ -243,9 +248,10 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
     def on_show_next_image(self):
         # 次の画像に移動して表示更新
         self.save_current_text()
-        ni = min(self.menu_function.current_index + 1, len(self.menu_function.image_data) - 1)
+        ni = min(self.menu_function.current_index + 1,
+                 len(self.menu_function.image_data) - 1)
         if ni == self.menu_function.current_index:
-            QMessageBox.warning(self, "警告", "これ以上次はありません。")
+            QMessageBox.warning(self, "警告", "これ以上後ろに画像がありません。")
             return
         self.menu_function.current_index = ni
         self.listWidget.blockSignals(True)
@@ -270,7 +276,7 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
         # 4行超え警告
         for info in self.menu_function.image_data:
             if len(self.force_wrap_text(info['text']).splitlines()) >= 4:
-                ans = QMessageBox.question(self, "警告", "4行超があります。続行？",
+                ans = QMessageBox.question(self, "警告", "テキストが4行以上あります。\n4行以上のテキストは、PDF出力後のレイアウトが崩れる可能性があります。\n続行しますか？",
                                            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                 if ans == QMessageBox.No:
                     return
@@ -318,7 +324,8 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
         if pix.isNull():
             self.label.setText("画像読み込み失敗")
         else:
-            self.label.setPixmap(pix.scaled(self.label.width(), self.label.height(),Qt.KeepAspectRatio,Qt.SmoothTransformation))
+            self.label.setPixmap(pix.scaled(self.label.width(
+            ), self.label.height(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
     def display_empty_image(self):
         # 空画像を表示
@@ -350,12 +357,12 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
         fn = self.menu_function.image_data[idx]['file_name']
         path = os.path.join(self.lineEdit.text(), fn)
         if not os.path.exists(path):
-            QMessageBox.critical(self, "エラー", f"ファイルがありません: {path}")
+            QMessageBox.critical(self, "エラー", f"ファイルがありません。\n {path}")
             return
         try:
             with Image.open(path) as img:
                 img.rotate(180, expand=True).save(path)
-            QMessageBox.information(self, "成功", f"{fn} を回転しました")
+            QMessageBox.information(self, "成功", f"{fn} を回転しました。")
             self.display_selected_image()
         except Exception as e:
-            QMessageBox.critical(self, "エラー", f"回転中エラー: {e}")
+            QMessageBox.critical(self, "エラー", f"回転に失敗しました。ー\n {e}")
