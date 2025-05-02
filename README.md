@@ -1,6 +1,6 @@
 # QSurveyMapReport
 ## 概要
-QSurveyMapReportは、写真ファイルのEXIF情報を解析し、QGIS上への点シンボルとして出力、また写真をまとめたPDFレポートを作成する機能を備えたQGISプラグインです。
+QSurveyMapReportは、写真ファイルのEXIF情報を解析し、QGIS上への点シンボルとして出力、写真をまとめたPDFレポートを作成する機能を備えたQGISプラグインです。
 出力された点シンボルとPDFレポートと合わせることで、簡易な調査報告書を作成することが可能です。
 
 ![image](https://github.com/user-attachments/assets/c0af08d4-817f-490d-8c3d-1c8448938f36)
