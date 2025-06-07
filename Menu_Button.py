@@ -16,7 +16,6 @@ class QSurveyMapReport:
         self.iface = iface
         self.canvas = iface.mapCanvas()
         self.plugin_dir = os.path.dirname(__file__)
-        # 翻訳はプラグイン読み込み時に適用済み
         self.actions = []  # List of QAction
         self.menu = PLUGIN_NAME  # Plugin menu name
         self.toolbar = iface.addToolBar(PLUGIN_NAME)
@@ -57,7 +56,6 @@ class QSurveyMapReport:
 
     def initGui(self):
         """Initialize GUI: add the plugin entry to QGIS menu and toolbar."""
-        # プラグインのメニューアクションを追加（クリックでダイアログを開く）
         self.add_action(
             icon_path=None,
             text=self.tr(PLUGIN_NAME),
@@ -69,7 +67,6 @@ class QSurveyMapReport:
         for action in self.actions:
             self.iface.removePluginMenu(self.menu, action)
             self.iface.removeToolBarIcon(action)
-        # ツールバーを削除
         del self.toolbar
 
     def open_plugin_dialog(self):

@@ -9,28 +9,28 @@ class Ui_MainWindow(object):
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
-        # 共通スタイル
+        # style
         border_css = "border: 1px solid black;"
 
-        # Path選択ボタン
+        # Path button
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(745, 20, 75, 20))
         self.pushButton.setStyleSheet(border_css)
         self.pushButton.setObjectName("pushButton")
 
-        # make csv ボタン
+        # make csv button
         self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_4.setGeometry(QtCore.QRect(750, 540, 75, 20))
         self.pushButton_4.setStyleSheet(border_css)
         self.pushButton_4.setObjectName("pushButton_4")
 
-        # make pdf ボタン
+        # make pdf button
         self.pushButton_7 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_7.setGeometry(QtCore.QRect(750, 570, 75, 20))
         self.pushButton_7.setStyleSheet(border_css)
         self.pushButton_7.setObjectName("pushButton_7")
 
-        # ◀／▶ ボタン
+        # ◀／▶ button
         self.pushButton_6 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_6.setGeometry(QtCore.QRect(570, 540, 75, 20))
         self.pushButton_6.setStyleSheet(border_css)
@@ -41,25 +41,25 @@ class Ui_MainWindow(object):
         self.pushButton_5.setStyleSheet(border_css)
         self.pushButton_5.setObjectName("pushButton_5")
 
-        # input map ボタン
+        # input map button
         self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_2.setGeometry(QtCore.QRect(660, 570, 75, 20))
         self.pushButton_2.setStyleSheet(border_css)
         self.pushButton_2.setObjectName("pushButton_2")
 
-        # update list ボタン
+        # update list button
         self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_3.setGeometry(QtCore.QRect(200, 540, 75, 23))
         self.pushButton_3.setStyleSheet(border_css)
         self.pushButton_3.setObjectName("pushButton_3")
 
-        # 180度回転ボタン
+        # 180度回転button
         self.pushButton_8 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_8.setGeometry(QtCore.QRect(480, 540, 75, 20))
         self.pushButton_8.setStyleSheet(border_css)
         self.pushButton_8.setObjectName("pushButton_8")
 
-        # icon設定
+        # icon
         script_dir = os.path.dirname(os.path.abspath(__file__))
         icons = {
             'pushButton_2': 'map.png',
@@ -81,48 +81,48 @@ class Ui_MainWindow(object):
                     btn.setIcon(icon)
                     btn.setIconSize(QtCore.QSize(15, 15))
 
-        # path表示
+        # path select
         self.lineEdit = QtWidgets.QLineEdit(self.centralwidget)
         self.lineEdit.setGeometry(QtCore.QRect(20, 20, 720, 20))
         self.lineEdit.setStyleSheet(border_css)
         self.lineEdit.setObjectName("lineEdit")
 
-        # 画像一覧（QListWidget）
+        # pic list
         self.listWidget = QtWidgets.QListWidget(self.centralwidget)
         self.listWidget.setGeometry(QtCore.QRect(20, 70, 256, 461))
         self.listWidget.setStyleSheet(border_css)
         self.listWidget.setObjectName("listWidget")
 
-        # 画像表示（QLabel）
+        # pic box
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(300, 70, 520, 290))
         self.label.setStyleSheet(border_css)
         self.label.setObjectName("label")
 
-        # 画像番号（QLineEdit）
+        # pic number
         self.lineEdit_2 = QtWidgets.QLineEdit(self.centralwidget)
         self.lineEdit_2.setGeometry(QtCore.QRect(300, 370, 520, 20))
         self.lineEdit_2.setStyleSheet(border_css)
         self.lineEdit_2.setObjectName("lineEdit_2")
 
-        # ファイル名表示（QLineEdit）
+        # file list
         self.lineEdit_4 = QtWidgets.QLineEdit(self.centralwidget)
         self.lineEdit_4.setGeometry(QtCore.QRect(300, 400, 520, 20))
         self.lineEdit_4.setStyleSheet(border_css)
         self.lineEdit_4.setObjectName("lineEdit_4")
 
-        # テキスト入力（QPlainTextEdit）
+        # text box
         self.textEdit = QtWidgets.QPlainTextEdit(self.centralwidget)
         self.textEdit.setGeometry(QtCore.QRect(300, 430, 520, 100))
         self.textEdit.setStyleSheet(border_css)
         self.textEdit.setObjectName("textEdit")
 
-        # 等幅フォント
+        # font
         font = QtGui.QFont("MS Gothic", 10)
         font.setStyleHint(QtGui.QFont.Monospace)
         self.textEdit.setFont(font)
 
-        # テキストラップとスクロール設定
+        # scroll
         self.textEdit.setLineWrapMode(QtWidgets.QPlainTextEdit.WidgetWidth)
         self.textEdit.setHorizontalScrollBarPolicy(
             QtCore.Qt.ScrollBarAlwaysOff)
@@ -133,7 +133,6 @@ class Ui_MainWindow(object):
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
 
-        # ここで retranslateUi を呼び出す。（Translator は既にインストール済みの想定）
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -143,13 +142,13 @@ class Ui_MainWindow(object):
             "Menu_Dialog", "QSurveyMapReport"))
         self.pushButton.setText(_translate("Menu_Dialog", "......"))
         self.pushButton_2.setText(_translate("Menu_Dialog", "input map"))
-        self.pushButton_3.setText("")  # 空文字の場合はそのまま
+        self.pushButton_3.setText("")
         self.pushButton_4.setText(_translate("Menu_Dialog", "make csv"))
-        self.pushButton_5.setText("")  # 空文字の場合はそのまま
-        self.pushButton_6.setText("")  # 空文字の場合はそのまま
+        self.pushButton_5.setText("")
+        self.pushButton_6.setText("")
         self.pushButton_7.setText(_translate("Menu_Dialog", "make pdf"))
         self.label.setText(_translate("Menu_Dialog", "TextLabel"))
-        self.pushButton_8.setText("")  # 空文字の場合はそのまま
+        self.pushButton_8.setText("")
 
 
 if __name__ == "__main__":

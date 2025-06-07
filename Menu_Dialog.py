@@ -154,10 +154,9 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
     def __init__(self, iface, parent=None):
         super().__init__(parent)
 
-        # ─── UIをセットアップ（翻訳ファイルはプラグイン読み込み時に適用済み） ───
+        # UI setup
         self.setupUi(self)
         self.retranslateUi(self)
-        # ───────────────────────────────────────────────────────────────
 
         self.iface = iface
         self.menu_function = Menu_Function(iface)
@@ -237,7 +236,6 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
             )
             return
 
-        # ※ ネイティブダイアログを使用するので、Opts 関連は不要
         path, _ = QFileDialog.getSaveFileName(
             self,
             self.tr("Save CSV"),
@@ -274,7 +272,6 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
 
     def on_load_csv_to_qgis(self):
         # Import CSV into QGIS
-        # ※ ネイティブダイアログを使用するので、Opts 関連は不要
         path, _ = QFileDialog.getOpenFileName(
             self,
             self.tr("Select CSV"),

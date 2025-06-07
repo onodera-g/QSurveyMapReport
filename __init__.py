@@ -2,10 +2,9 @@
 import os
 from PyQt5.QtCore import QSettings, QTranslator, QCoreApplication
 
-# プラグイン名を定義
 PLUGIN_NAME = 'QSurveyMapReport'
 
-# 翻訳ファイルをロードして QGIS にインストール
+# road langage file
 locale = QSettings().value('locale/userLocale')
 if locale:
     locale = locale[0:2]
@@ -17,7 +16,6 @@ if os.path.exists(locale_path):
     translator = QTranslator()
     translator.load(locale_path)
     QCoreApplication.installTranslator(translator)
-    # Translator オブジェクトを保持しておく（ガベージコレクション対策）
     _translator = translator
 
 
