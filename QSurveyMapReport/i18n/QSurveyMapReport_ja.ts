@@ -6,12 +6,13 @@
     <message>
         <location filename="../Menu_Dialog.py" line="106"/>
         <source>Invalid header:</source>
-        <translation>CSVのヘッダーが正しくありません\nデータが欠損している可能性があります。</translation>
+        <translation>CSVのヘッダーが正しくありません
+データが欠損している可能性があります</translation>
     </message>
     <message>
         <location filename="../Menu_Dialog.py" line="110"/>
         <source>CSV load error:</source>
-        <translation>CSV読込エラー：</translation>
+        <translation>CSV読込エラーが発生しました</translation>
     </message>
     <message>
         <location filename="../Menu_Dialog.py" line="123"/>
@@ -36,7 +37,7 @@
     <message>
         <location filename="../Menu_Dialog.py" line="235"/>
         <source>No image data available.</source>
-        <translation>画像データがありません。</translation>
+        <translation>画像データがありません</translation>
     </message>
     <message>
         <location filename="../Menu_Dialog.py" line="241"/>
@@ -82,7 +83,8 @@
         <location filename="../Menu_Dialog.py" line="263"/>
         <source>CSV saved.
 {0}</source>
-        <translation>CSVを保存しました。\n{0}</translation>
+        <translation>CSVを保存しました
+{0}</translation>
     </message>
     <message>
         <location filename="../Menu_Dialog.py" line="465"/>
@@ -93,7 +95,8 @@
         <location filename="../Menu_Dialog.py" line="269"/>
         <source>Failed to save CSV.
 {0}</source>
-        <translation>CSVの保存に失敗しました。\n{0}</translation>
+        <translation>CSVの保存に失敗しました
+{0}</translation>
     </message>
     <message>
         <location filename="../Menu_Dialog.py" line="278"/>
@@ -103,24 +106,26 @@
     <message>
         <location filename="../Menu_Dialog.py" line="297"/>
         <source>No previous images available.</source>
-        <translation>これ以上前の画像はありません。</translation>
+        <translation>これ以上前の画像はありません</translation>
     </message>
     <message>
         <location filename="../Menu_Dialog.py" line="317"/>
         <source>No more images available.</source>
-        <translation>これ以上後ろの画像はありません。</translation>
+        <translation>これ以上後ろの画像はありません</translation>
     </message>
     <message>
         <location filename="../Menu_Dialog.py" line="340"/>
         <source>No valid images.</source>
-        <translation>有効な画像がありません。</translation>
+        <translation>有効な画像がありません</translation>
     </message>
     <message>
         <location filename="../Menu_Dialog.py" line="348"/>
         <source>Text exceeds 4 lines.
 Text longer than 4 lines may disrupt PDF layout.
 Continue?</source>
-        <translation>テキストが4行を超えています。\n4行以上のテキストはPDFレイアウトを崩す可能性があります。\n続行しますか？</translation>
+        <translation>テキストが4行を超えています
+4行以上のテキストはPDFレイアウトを崩す可能性があります
+続行しますか？</translation>
     </message>
     <message>
         <location filename="../Menu_Dialog.py" line="363"/>
@@ -140,24 +145,26 @@ Continue?</source>
     <message>
         <location filename="../Menu_Dialog.py" line="442"/>
         <source>No image selected.</source>
-        <translation>画像が選択されていません。</translation>
+        <translation>画像が選択されていません</translation>
     </message>
     <message>
         <location filename="../Menu_Dialog.py" line="449"/>
         <source>File not found.
 {0}</source>
-        <translation>ファイルが見つかりません。\n{0}</translation>
+        <translation>ファイルが見つかりません
+{0}</translation>
     </message>
     <message>
         <location filename="../Menu_Dialog.py" line="458"/>
         <source>{0} rotated.</source>
-        <translation>{0} を回転しました。</translation>
+        <translation>{0} を回転しました</translation>
     </message>
     <message>
         <location filename="../Menu_Dialog.py" line="465"/>
         <source>Rotation failed.
 {0}</source>
-        <translation>回転に失敗しました。\n{0}</translation>
+        <translation>回転に失敗しました
+{0}</translation>
     </message>
 </context>
 <context>
@@ -176,13 +183,15 @@ Continue?</source>
         <location filename="../pdf_creator.py" line="176"/>
         <source>PDF created
 {0}</source>
-        <translation>PDFを作成しました\n{0}</translation>
+        <translation>PDFを作成しました
+{0}</translation>
     </message>
     <message>
         <location filename="../pdf_creator.py" line="180"/>
         <source>Error occurred:
 {0}</source>
-        <translation>エラーが発生しました：\n{0}</translation>
+        <translation>エラーが発生しました
+{0}</translation>
     </message>
 </context>
 </TS>
