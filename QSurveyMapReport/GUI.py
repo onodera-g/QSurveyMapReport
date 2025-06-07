@@ -87,31 +87,31 @@ class Ui_MainWindow(object):
         self.lineEdit.setStyleSheet(border_css)
         self.lineEdit.setObjectName("lineEdit")
 
-        # 画像一覧
+        # 画像一覧（QListWidget）
         self.listWidget = QtWidgets.QListWidget(self.centralwidget)
         self.listWidget.setGeometry(QtCore.QRect(20, 70, 256, 461))
         self.listWidget.setStyleSheet(border_css)
         self.listWidget.setObjectName("listWidget")
 
-        # 画像表示
+        # 画像表示（QLabel）
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(300, 70, 520, 290))
         self.label.setStyleSheet(border_css)
         self.label.setObjectName("label")
 
-        # 画像番号
+        # 画像番号（QLineEdit）
         self.lineEdit_2 = QtWidgets.QLineEdit(self.centralwidget)
         self.lineEdit_2.setGeometry(QtCore.QRect(300, 370, 520, 20))
         self.lineEdit_2.setStyleSheet(border_css)
         self.lineEdit_2.setObjectName("lineEdit_2")
 
-        # ファイル名表示
+        # ファイル名表示（QLineEdit）
         self.lineEdit_4 = QtWidgets.QLineEdit(self.centralwidget)
         self.lineEdit_4.setGeometry(QtCore.QRect(300, 400, 520, 20))
         self.lineEdit_4.setStyleSheet(border_css)
         self.lineEdit_4.setObjectName("lineEdit_4")
 
-        # テキスト入力
+        # テキスト入力（QPlainTextEdit）
         self.textEdit = QtWidgets.QPlainTextEdit(self.centralwidget)
         self.textEdit.setGeometry(QtCore.QRect(300, 430, 520, 100))
         self.textEdit.setStyleSheet(border_css)
@@ -133,21 +133,23 @@ class Ui_MainWindow(object):
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
 
+        # ここで retranslateUi を呼び出す。（Translator は既にインストール済みの想定）
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "QSurveyMapReport"))
-        self.pushButton.setText(_translate("MainWindow", "......"))
-        self.pushButton_2.setText(_translate("MainWindow", "input map"))
-        self.pushButton_3.setText("")
-        self.pushButton_4.setText(_translate("MainWindow", "make csv"))
-        self.pushButton_5.setText("")
-        self.pushButton_6.setText("")
-        self.pushButton_7.setText(_translate("MainWindow", "make pdf"))
-        self.label.setText(_translate("MainWindow", "TextLabel"))
-        self.pushButton_8.setText("")
+        MainWindow.setWindowTitle(_translate(
+            "Menu_Dialog", "QSurveyMapReport"))
+        self.pushButton.setText(_translate("Menu_Dialog", "......"))
+        self.pushButton_2.setText(_translate("Menu_Dialog", "input map"))
+        self.pushButton_3.setText("")  # 空文字の場合はそのまま
+        self.pushButton_4.setText(_translate("Menu_Dialog", "make csv"))
+        self.pushButton_5.setText("")  # 空文字の場合はそのまま
+        self.pushButton_6.setText("")  # 空文字の場合はそのまま
+        self.pushButton_7.setText(_translate("Menu_Dialog", "make pdf"))
+        self.label.setText(_translate("Menu_Dialog", "TextLabel"))
+        self.pushButton_8.setText("")  # 空文字の場合はそのまま
 
 
 if __name__ == "__main__":

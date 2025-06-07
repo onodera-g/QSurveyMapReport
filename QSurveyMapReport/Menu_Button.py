@@ -1,43 +1,30 @@
 import os
-from PyQt5.QtCore import QSettings, QTranslator, QCoreApplication, qVersion
+from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction
-
+from . import PLUGIN_NAME
 from .Menu_Dialog import Menu_Dialog
 
 
 class QSurveyMapReport:
-    """QSurveyMapReport プラグイン メインクラス"""
-    PLUGIN_NAME = 'QSurveyMapReport'  # プラグイン名
+    """Main class for the QSurveyMapReport plugin."""
 
     def __init__(self, iface):
-        """:param iface: QGISのインターフェースインスタンス"""
+        """
+        :param iface: QGIS interface instance
+        """
         self.iface = iface
-        self.canvas = iface.mapCanvas()  # マップキャンバスの参照
-        self.plugin_dir = os.path.dirname(__file__)  # プラグインディレクトリのパス
-        self._load_locale()  # 翻訳ファイルの読み込み
-        self.actions = []  # 登録したアクションを保持
-        self.menu = self.PLUGIN_NAME  # メニュー名
-        self.toolbar = iface.addToolBar(self.PLUGIN_NAME)  # ツールバー作成
-        self.toolbar.setObjectName(self.PLUGIN_NAME)
-
-    def _load_locale(self):
-        """ユーザーロケールに応じた翻訳ファイル (.qm) を読み込む"""
-        locale = QSettings().value('locale/userLocale')[0:2]
-        qm_path = os.path.join(
-            self.plugin_dir,
-            'i18n',
-            f'{self.PLUGIN_NAME}_{locale}.qm'
-        )
-        if os.path.exists(qm_path):
-            translator = QTranslator()
-            translator.load(qm_path)
-            if qVersion() > '4.3.3':
-                QCoreApplication.installTranslator(translator)
+        self.canvas = iface.mapCanvas()
+        self.plugin_dir = os.path.dirname(__file__)
+        # 翻訳はプラグイン読み込み時に適用済み
+        self.actions = []  # List of QAction
+        self.menu = PLUGIN_NAME  # Plugin menu name
+        self.toolbar = iface.addToolBar(PLUGIN_NAME)
+        self.toolbar.setObjectName(PLUGIN_NAME)
 
     def tr(self, message):
-        """QGIS翻訳コンテキストでメッセージを翻訳する"""
-        return QCoreApplication.translate(self.PLUGIN_NAME, message)
+        """Return translated string using plugin locale."""
+        return QCoreApplication.translate(PLUGIN_NAME, message)
 
     def add_action(
         self,
@@ -51,7 +38,7 @@ class QSurveyMapReport:
         whats_this=None,
         parent=None
     ):
-        """メニューとツールバーにアクションを追加する"""
+        """Create a QAction, add it to the menu and toolbar, and return it."""
         parent = parent or self.iface.mainWindow()
         icon = QIcon(icon_path) if icon_path else QIcon()
         action = QAction(icon, text, parent)
@@ -69,25 +56,27 @@ class QSurveyMapReport:
         return action
 
     def initGui(self):
-        """GUIを初期化: メニューとツールバーにプラグイン起動アクションを追加"""
+        """Initialize GUI: add the plugin entry to QGIS menu and toolbar."""
+        # プラグインのメニューアクションを追加（クリックでダイアログを開く）
         self.add_action(
             icon_path=None,
-            text=self.tr(self.PLUGIN_NAME),
+            text=self.tr(PLUGIN_NAME),
             callback=self.open_plugin_dialog
         )
 
     def unload(self):
-        """プラグインアンロード時: メニューとツールバーアイコンを削除"""
+        """Remove plugin menu entries and toolbar icons when plugin is unloaded."""
         for action in self.actions:
             self.iface.removePluginMenu(self.menu, action)
             self.iface.removeToolBarIcon(action)
+        # ツールバーを削除
         del self.toolbar
 
     def open_plugin_dialog(self):
-        """プラグインダイアログを表示する"""
-        self.dialog = Menu_Dialog(self.iface)  # ダイアログを保持して開く
+        """Instantiate and show the main dialog."""
+        self.dialog = Menu_Dialog(self.iface)
         self.dialog.show()
 
     def run(self):
-        """互換用エントリポイント: プラグインダイアログを開く"""
+        """Backward compatibility: directly open the plugin dialog."""
         self.open_plugin_dialog()
