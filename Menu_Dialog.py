@@ -45,23 +45,49 @@ class Menu_Function:
             return None, None, None
 
         def to_deg(vals):
+            """Convert GPS degrees/minutes/seconds to decimal degrees."""
             def rat2f(r):
+                """Convert Rational type or numeric value to float."""
                 try:
                     return float(r)
-                except:
-                    return r.numerator / r.denominator
-            d, m, s = vals
-            return rat2f(d) + rat2f(m) / 60 + rat2f(s) / 3600
+                except (TypeError, AttributeError, ZeroDivisionError):
+                    try:
+                        return r.numerator / r.denominator
+                    except (AttributeError, ZeroDivisionError):
+                        return 0.0
+            try:
+                if len(vals) < 3:
+                    return 0.0
+                d, m, s = vals
+                return rat2f(d) + rat2f(m) / 60 + rat2f(s) / 3600
+            except (TypeError, ValueError):
+                return 0.0
 
         lat = lon = dir_ = None
-        for k, v in gps.items():
-            key = GPSTAGS.get(k, k)
-            if key == "GPSLatitude":
-                lat = to_deg(v) * (-1 if gps.get(1) == "S" else 1)
-            elif key == "GPSLongitude":
-                lon = to_deg(v) * (-1 if gps.get(3) == "W" else 1)
-            elif key == "GPSImgDirection":
-                dir_ = v
+        
+        # Process Latitude independently
+        try:
+            if 2 in gps:  # GPSLatitude key
+                lat_val = to_deg(gps[2])
+                lat = lat_val * (-1 if gps.get(1) == "S" else 1)
+        except (TypeError, ValueError, KeyError):
+            lat = None
+        
+        # Process Longitude independently
+        try:
+            if 4 in gps:  # GPSLongitude key
+                lon_val = to_deg(gps[4])
+                lon = lon_val * (-1 if gps.get(3) == "W" else 1)
+        except (TypeError, ValueError, KeyError):
+            lon = None
+        
+        # Process Direction independently
+        try:
+            if 17 in gps:  # GPSImgDirection key
+                dir_ = float(gps[17])
+        except (TypeError, ValueError, KeyError):
+            dir_ = None
+        
         return lat, lon, dir_
 
     def update_image_list(self, directory):
@@ -251,11 +277,11 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
             with open(path, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
                 writer.writerow([
-                    self.tr("Number"),
-                    self.tr("File Name"),
-                    self.tr("Latitude"),
-                    self.tr("Longitude"),
-                    self.tr("Direction")
+                    "Number",
+                    "File Name",
+                    "Latitude",
+                    "Longitude",
+                    "Direction"
                 ])
                 writer.writerows(data)
             QMessageBox.information(
@@ -433,7 +459,7 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
         return '\n'.join(lines)
 
     def on_rotate_image(self):
-        # Rotate the selected image 180 degrees and save/display
+        # Rotate the selected image 180 degrees while preserving EXIF/GPS data
         idx = self.menu_function.current_index
         if idx < 0:
             QMessageBox.warning(
@@ -450,8 +476,21 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
             )
             return
         try:
+            # Step 1: Extract EXIF before rotation
+            exif_data = None
             with Image.open(path) as img:
-                img.rotate(180, expand=True).save(path)
+                exif_data = img.info.get('exif')
+
+            # Step 2: Rotate image
+            with Image.open(path) as img:
+                rotated = img.rotate(180, expand=False)
+                rotated.save(path, quality=95)
+
+            # Step 3: Reattach EXIF if it existed
+            if exif_data:
+                with Image.open(path) as img:
+                    img.save(path, quality=95, exif=exif_data)
+
             QMessageBox.information(
                 self,
                 self.tr("Success"),
