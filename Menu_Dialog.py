@@ -64,7 +64,7 @@ class Menu_Function:
                 return 0.0
 
         lat = lon = dir_ = None
-        
+
         # Process Latitude independently
         try:
             if 2 in gps:  # GPSLatitude key
@@ -72,7 +72,7 @@ class Menu_Function:
                 lat = lat_val * (-1 if gps.get(1) == "S" else 1)
         except (TypeError, ValueError, KeyError):
             lat = None
-        
+
         # Process Longitude independently
         try:
             if 4 in gps:  # GPSLongitude key
@@ -80,14 +80,14 @@ class Menu_Function:
                 lon = lon_val * (-1 if gps.get(3) == "W" else 1)
         except (TypeError, ValueError, KeyError):
             lon = None
-        
+
         # Process Direction independently
         try:
             if 17 in gps:  # GPSImgDirection key
                 dir_ = float(gps[17])
         except (TypeError, ValueError, KeyError):
             dir_ = None
-        
+
         return lat, lon, dir_
 
     def update_image_list(self, directory):
