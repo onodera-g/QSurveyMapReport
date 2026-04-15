@@ -1,7 +1,7 @@
 import os
-from PyQt5.QtCore import QCoreApplication
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction
+from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QAction
 from . import PLUGIN_NAME
 from .Menu_Dialog import Menu_Dialog
 

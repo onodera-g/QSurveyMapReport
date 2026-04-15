@@ -1,7 +1,22 @@
-from PyQt5.QtGui import QPdfWriter, QPainter, QPen, QImage, QFont
-from PyQt5.QtCore import QSizeF, Qt, QRectF, QCoreApplication
+from qgis.PyQt.QtGui import QPdfWriter, QPainter, QPen, QImage, QFont
+from qgis.PyQt.QtCore import QSizeF, QRectF, QCoreApplication
 import re
 import math
+
+from .qt_compat import (
+    ALIGN_LEFT,
+    ALIGN_VCENTER,
+    ANTIALIASING,
+    BLACK,
+    FONT_MONOSPACE,
+    FONT_PERCENTAGE_SPACING,
+    HIGH_QUALITY_ANTIALIASING,
+    KEEP_ASPECT_RATIO,
+    set_pdf_page_size,
+    SMOOTH_PIXMAP_TRANSFORM,
+    SMOOTH_TRANSFORMATION,
+    TEXT_ANTIALIASING,
+)
 
 
 class PDFCreator:
@@ -26,19 +41,19 @@ class PDFCreator:
     @staticmethod
     def _init_painter(painter, scale):
         """Set rendering hints on QPainter and apply scaling"""
-        painter.setRenderHint(QPainter.HighQualityAntialiasing, True)
-        painter.setRenderHint(QPainter.Antialiasing, True)
-        painter.setRenderHint(QPainter.TextAntialiasing, True)
-        painter.setRenderHint(QPainter.SmoothPixmapTransform, True)
+        painter.setRenderHint(HIGH_QUALITY_ANTIALIASING, True)
+        painter.setRenderHint(ANTIALIASING, True)
+        painter.setRenderHint(TEXT_ANTIALIASING, True)
+        painter.setRenderHint(SMOOTH_PIXMAP_TRANSFORM, True)
         painter.scale(scale, scale)
 
     @staticmethod
     def _create_font():
         """Generate an MS Gothic monospaced font"""
         font = QFont("MS Gothic")
-        font.setStyleHint(QFont.Monospace)
+        font.setStyleHint(FONT_MONOSPACE)
         font.setPointSizeF(PDFCreator.FONT_SIZE_PT)
-        font.setLetterSpacing(QFont.PercentageSpacing,
+        font.setLetterSpacing(FONT_PERCENTAGE_SPACING,
                               PDFCreator.LETTER_SPACING_PERCENT)
         return font
 
@@ -72,7 +87,7 @@ class PDFCreator:
         try:
             # --- Configure QPdfWriter ---
             writer = QPdfWriter(pdf_file)
-            writer.setPageSizeMM(PDFCreator.PAGE_SIZE_MM)
+            set_pdf_page_size(writer, PDFCreator.PAGE_SIZE_MM)
             writer.setResolution(PDFCreator.DPI)
             scale = writer.resolution() / 25.4
 
@@ -89,7 +104,7 @@ class PDFCreator:
             pages = math.ceil(total / slots)
 
             # --- Initialize pen and painter ---
-            pen = QPen(Qt.black, 0.5)
+            pen = QPen(BLACK, 0.5)
             painter = QPainter(writer)
             PDFCreator._init_painter(painter, scale)
             painter.setPen(pen)
@@ -128,7 +143,7 @@ class PDFCreator:
                         area_w, area_h = tw, heights[0]
                         w_px, h_px = int(area_w * scale), int(area_h * scale)
                         simg = img.scaled(
-                            w_px, h_px, Qt.KeepAspectRatio, Qt.SmoothTransformation
+                            w_px, h_px, KEEP_ASPECT_RATIO, SMOOTH_TRANSFORMATION
                         )
                         sw, sh = simg.width() / scale, simg.height() / scale
                         ix = x0 + tx + (area_w - sw) / 2
@@ -142,7 +157,7 @@ class PDFCreator:
                     no_text = PDFCreator.tr("Photo No.{0}").format(idx + 1)
                     painter.drawText(
                         QRectF(x0 + tx + fm, y_no, tw - fm, heights[1]),
-                        Qt.AlignLeft | Qt.AlignVCenter,
+                        ALIGN_LEFT | ALIGN_VCENTER,
                         no_text
                     )
 
@@ -160,7 +175,7 @@ class PDFCreator:
                     for line in lines:
                         painter.drawText(
                             QRectF(x0 + tx + fm, y_line, tw - fm, line_h),
-                            Qt.AlignLeft | Qt.AlignVCenter,
+                            ALIGN_LEFT | ALIGN_VCENTER,
                             line
                         )
                         y_line += line_h

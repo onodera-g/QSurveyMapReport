@@ -1,6 +1,7 @@
 [general]
 name=QSurveyMapReport
 qgisMinimumVersion=3.0
+qgisMaximumVersion=4.0
 description=The Exif information of the photo file is analyzed and output as CSV layer.
 about=QSurveyMapReport can analyze the Exif information in a photo file and output it as a CSV layer. It can also compile photo files and output them as a single pdf.
 version=1.0

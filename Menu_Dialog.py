@@ -1,9 +1,9 @@
 import os
 import csv
 import unicodedata
-from PyQt5.QtCore import Qt, QCoreApplication
-from PyQt5.QtGui import QPixmap, QImage
-from PyQt5.QtWidgets import (
+from qgis.PyQt.QtCore import QCoreApplication
+from qgis.PyQt.QtGui import QPixmap, QImage
+from qgis.PyQt.QtWidgets import (
     QMainWindow, QFileDialog, QMessageBox,
     QListWidget, QLabel, QPlainTextEdit, QPushButton
 )
@@ -14,6 +14,14 @@ from qgis.core import (
 )
 from .GUI import Ui_MainWindow
 from .pdf_creator import PDFCreator
+from .qt_compat import (
+    ALIGN_CENTER,
+    FORMAT_RGB32,
+    KEEP_ASPECT_RATIO,
+    MESSAGEBOX_NO,
+    MESSAGEBOX_YES,
+    SMOOTH_TRANSFORMATION,
+)
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 
@@ -187,26 +195,13 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
         self.iface = iface
         self.menu_function = Menu_Function(iface)
 
-        # Button style settings
-        btn_style = (
-            'QPushButton {background:lightgray;} '
-            'QPushButton:hover {background:lightblue;}'
-        )
-        for btn in [
-            self.pushButton, self.pushButton_2, self.pushButton_3,
-            self.pushButton_4, self.pushButton_5, self.pushButton_6,
-            self.pushButton_7, getattr(self, 'pushButton_8', None)
-        ]:
-            if btn:
-                btn.setStyleSheet(btn_style)
-
         # Configure lineEdit_2 and lineEdit_4
         for le in (self.lineEdit_2, self.lineEdit_4):
-            le.setAlignment(Qt.AlignCenter)
+            le.setAlignment(ALIGN_CENTER)
             le.setReadOnly(True)
 
         # Initialize image display area
-        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setAlignment(ALIGN_CENTER)
         self.display_empty_image()
 
         # Connect signals to slots
@@ -376,10 +371,10 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
                         "Text longer than 4 lines may disrupt PDF layout.\n"
                         "Continue?"
                     ),
-                    QMessageBox.Yes | QMessageBox.No,
-                    QMessageBox.No
+                    MESSAGEBOX_YES | MESSAGEBOX_NO,
+                    MESSAGEBOX_NO
                 )
-                if ans == QMessageBox.No:
+                if ans == MESSAGEBOX_NO:
                     return
                 break
 
@@ -432,15 +427,15 @@ class Menu_Dialog(QMainWindow, Ui_MainWindow):
                 pix.scaled(
                     self.label.width(),
                     self.label.height(),
-                    Qt.KeepAspectRatio,
-                    Qt.SmoothTransformation
+                    KEEP_ASPECT_RATIO,
+                    SMOOTH_TRANSFORMATION
                 )
             )
 
     def display_empty_image(self):
-        # Display an empty (white) image in the label
-        img = QImage(self.label.size(), QImage.Format_RGB32)
-        img.fill(Qt.white)
+        # Match the placeholder to the input-style base color of the current theme
+        img = QImage(self.label.size(), FORMAT_RGB32)
+        img.fill(self.label.palette().base().color())
         self.label.setPixmap(QPixmap.fromImage(img))
 
     def force_wrap_text(self, text, max_width=36.5):
