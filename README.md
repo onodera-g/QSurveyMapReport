@@ -55,8 +55,8 @@ QSurveyMapReport is a QGIS plugin that parses EXIF metadata from photo files, ex
 ![スクリーンショット 2025-04-28 130334](https://github.com/user-attachments/assets/999a6467-b6cd-45b5-9af3-ec75ebf487c1)
 
 ## 必要要件 Requirements  
-- QGIS 3.x以降
-- QGIS 3.x or later  
+- QGIS 3.x系および 4.x系に対応
+- Supports QGIS 3.x and 4.x
 
 ## ライセンス 
 MIT License. 詳しくは [LICENSE](LICENSE) ファイルをご覧ください。  
