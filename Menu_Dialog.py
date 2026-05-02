@@ -5,7 +5,6 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtGui import QPixmap, QImage
 from qgis.PyQt.QtWidgets import (
     QMainWindow, QFileDialog, QMessageBox,
-    QListWidget, QLabel, QPlainTextEdit, QPushButton
 )
 from qgis.core import (
     QgsVectorLayer, QgsProject, QgsPalLayerSettings,
@@ -23,7 +22,7 @@ from .qt_compat import (
     SMOOTH_TRANSFORMATION,
 )
 from PIL import Image
-from PIL.ExifTags import TAGS, GPSTAGS
+from PIL.ExifTags import TAGS
 
 
 class Menu_Function:
